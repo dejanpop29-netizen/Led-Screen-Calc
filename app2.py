@@ -82,19 +82,20 @@ st.divider()
 
 c1, c2, c3 = st.columns(3)
 with c1:
-    st.subheader("📶 Data (Ethercon)")
+    st.subheader("Data (Ethercon)")
     st.write(f"Limit (@{hercaza}Hz): **{pixel_limit:,} px**")
     st.info(f"Glavnih: **{glavnih_data}**\n\nLinkova: **{ukupno_panela - glavnih_data}**")
 
 with c2:
-    st.subheader("⚡ Struja (Powercon)")
+    st.subheader("Struja (Powercon)")
     st.write("Limit: **3000 W** po kablu")
     st.warning(f"Glavnih: **{glavnih_struja}**\n\nLinkova: **{ukupno_panela - glavnih_struja}**")
 
 with c3:
-    st.subheader("⚓ Težina & Tegovi")
+    st.subheader("Težina & Tegovi")
     st.write(f" Lokacija: **Indoor**")
     st.error(f"Kontra-teg: **{teg:.1f} kg**\n\nMasa ekrana: **{masa_ekrana:.1f} kg**")
 
 st.divider()
-st.caption("v26 - Deki LED Screen Kalkulejsn")
+st.caption("v26 - by Dejan Popovic")
+
