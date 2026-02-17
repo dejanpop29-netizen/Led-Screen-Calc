@@ -96,7 +96,7 @@ with c3:
     st.write(f" Lokacija: **Indoor**")
     st.error(f"Kontra-teg: **{teg:.1f} kg**\n\nMasa ekrana: **{masa_ekrana:.1f} kg**")
 
-st.divider()
+
 st.divider()
 # --- FINALNA ISPRAVLJENA DOPUNA (ZAOKRUŽIVANJE NA MANJE) ---
 
@@ -151,5 +151,6 @@ if v > nivoi_u_vis:
     st.warning(f"⚠️ Ekran je viši od konstrukcije za {v - nivoi_u_vis}m. Gornji deo panela nema Backframe potporu.")
 st.divider()
 st.caption("v26 - by Dejan Popovic")
+
 
 
