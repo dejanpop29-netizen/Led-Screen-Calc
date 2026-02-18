@@ -183,11 +183,10 @@ else:
         st.write(f"**Dodatni materijal**")
         st.write(f"- Pločice: **{plocice}** kom")
         st.write(f"- Šrafovi: **{srafovi}** kom")
-        # Dodatna napomena ako je ekran viši od konstrukcije
-if v > nivoi_u_vis:
-    st.warning(f"⚠️ Ekran je viši od konstrukcije za {v - nivoi_u_vis}m. Gornji deo panela nema Backframe potporu.")
+
 st.divider()
 st.caption("v36 - by Dejan Popovic")
+
 
 
 
