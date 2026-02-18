@@ -58,7 +58,7 @@ potrosnja_kw = potrosnja_w / 1000
 # --- KOMBINATORIKA STRUJNOG PRIKLJUČKA ---
 def izracunaj_prikljucke(snaga):
     if snaga <= 0: return "Bez potrošnje"
-    opcije = [("125A", 82.5), ("63A", 40.5), ("32A", 22.5), ("16A", 10.5), ("Shuko Mono", 3.5)]
+    opcije = [("125A", 82.5), ("63A", 40.5), ("32A", 22.5), ("16A", 10.5), ("Shuko Mono", 3)]
     rezultat = []
     ostatak = snaga
     for naziv, kapacitet in opcije:
@@ -185,3 +185,4 @@ else:
 
 st.divider()
 st.caption("v36 - by Dejan Popovic")
+
