@@ -110,11 +110,11 @@ with c3:
     if tip_montaze == "Ground Support":
         st.subheader("Težina & Tegovi")
         st.write(f" Lokacija: **Indoor**")
-        st.error(f"Masa ekrana: **{masa_ekrana:.1f} kg**\n\nKontra-teg: **{teg:.1f} kg**")
+        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**\n\nKontra-teg: **{teg:.1f} kg**")
     else:
         st.subheader("Težina & Rigging")
         st.write(f" Lokacija: **Hanging**")
-        st.error(f"Ukupna masa: **{masa_ekrana:.1f} kg**")
+        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**")
 
 st.divider()
 
@@ -190,6 +190,7 @@ else:
 
 st.divider()
 st.caption("v36 - by Dejan Popovic")
+
 
 
 
