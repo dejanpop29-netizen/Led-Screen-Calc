@@ -31,7 +31,7 @@ with st.sidebar:
     st.divider()
     tip_montaze = st.radio("Tip montaže:", ["Ground Support", "Hanging"])
     
-    st.info("ℹ️ Režim rada: Indoor. Statika se računa kao 70% mase ekrana radi stabilnosti konstrukcije.")
+    st.info("ℹ️ Režim rada: Indoor. Kontra-teg se računa kao 70% mase ekrana radi stabilnosti konstrukcije.")
 
 # --- PRORAČUNI ---
 p_dopuna = baza_panela["P2.9 Plavi 168x168px"]
@@ -190,6 +190,7 @@ else:
 
 st.divider()
 st.caption("v36 - by Dejan Popovic")
+
 
 
 
