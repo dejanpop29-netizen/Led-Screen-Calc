@@ -159,6 +159,9 @@ if tip_montaze == "Ground Support":
         st.write(f"**Balast (Tegovi)**")
         st.error(f"**Ukupno: {ukupni_balast:.1f} kg**")
         st.info(f"Po stopi: **{ukupni_balast/broj_stubova:.1f} kg**")
+        # Dodatna napomena ako je ekran viši od konstrukcije
+if v > nivoi_u_vis:
+    st.warning(f"⚠️ Ekran je viši od konstrukcije za {v - nivoi_u_vis}m. Gornji deo panela nema Backframe potporu.")
 else:
     st.subheader("Specifikacija Hanging elemenata")
     grid_1m = int(stvarna_s // 1)
@@ -185,4 +188,5 @@ else:
 
 st.divider()
 st.caption("v36 - by Dejan Popovic")
+
 
