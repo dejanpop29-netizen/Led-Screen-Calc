@@ -8,10 +8,10 @@ st.title("🖥️ Deki LED Screen Kalkulejsn")
 
 # --- BAZA PANELA ---
 baza_panela = {
-    "P2.9 Plavi 168x168px": {"res_x": 168, "res_y": 168, "sirina": 500, "visina": 500, "tezina": 10, "potrosnja": 96.5},
-    "P2.9 Crni 168x336px": {"res_x": 168, "res_y": 336, "sirina": 500, "visina": 1000, "tezina": 14, "potrosnja": 193},
+    "P2.9 Plavi 168x168px": {"res_x": 168, "res_y": 168, "sirina": 500, "visina": 500, "tezina": 10, "potrosnja": 120},
+    "P2.9 Crni 168x336px": {"res_x": 168, "res_y": 336, "sirina": 500, "visina": 1000, "tezina": 15, "potrosnja": 240},
     "P2.9S Crveni 176x168px": {"res_x": 176, "res_y": 168, "sirina": 500, "visina": 500, "tezina": 10, "potrosnja": 120},
-    "P2.9C Zuti 168x168px": {"res_x": 168, "res_y": 168, "sirina": 500, "visina": 500, "tezina": 10, "potrosnja": 96.5},
+    "P2.9C Zuti 168x168px": {"res_x": 168, "res_y": 168, "sirina": 500, "visina": 500, "tezina": 10, "potrosnja": 120},
     "P2.6 Plavi 192x192px": {"res_x": 192, "res_y": 192, "sirina": 500, "visina": 500, "tezina": 10, "potrosnja": 120},
     "P2.6C Zuti 192x192px": {"res_x": 192, "res_y": 192, "sirina": 500, "visina": 500, "tezina": 10, "potrosnja": 120}
 }
@@ -58,7 +58,7 @@ potrosnja_kw = potrosnja_w / 1000
 # --- KOMBINATORIKA STRUJNOG PRIKLJUČKA ---
 def izracunaj_prikljucke(snaga):
     if snaga <= 0: return "Bez potrošnje"
-    opcije = [("125A", 82.5), ("63A", 40.5), ("32A", 22.5), ("16A", 10.5), ("Shuko Mono", 3)]
+    opcije = [("125A", 82), ("63A", 40), ("32A", 22), ("16A", 10), ("Shuko Mono", 3)]
     rezultat = []
     ostatak = snaga
     for naziv, kapacitet in opcije:
@@ -190,6 +190,7 @@ else:
 
 st.divider()
 st.caption("v36 - by Dejan Popovic")
+
 
 
 
