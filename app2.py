@@ -8,6 +8,8 @@ st.title("🖥️ Deki LED Screen Kalkulejsn")
 
 # --- BAZA PANELA ---
 baza_panela = {
+    "P3.9 Crni 128x128px": {"res_x": 128, "res_y": 128, "sirina": 500, "visina": 500, "tezina": 10, "potrosnja": 170},
+    "P3.9 Crni 128x256px": {"res_x": 128, "res_y": 256, "sirina": 500, "visina": 1000, "tezina": 15, "potrosnja": 330},
     "P2.9 Plavi 168x168px": {"res_x": 168, "res_y": 168, "sirina": 500, "visina": 500, "tezina": 10, "potrosnja": 120},
     "P2.9 Crni 168x336px": {"res_x": 168, "res_y": 336, "sirina": 500, "visina": 1000, "tezina": 15, "potrosnja": 240},
     "P2.9S Crveni 176x168px": {"res_x": 176, "res_y": 168, "sirina": 500, "visina": 500, "tezina": 10, "potrosnja": 120},
