@@ -36,8 +36,11 @@ with st.sidebar:
     st.info("ℹ️ Režim rada: Indoor. Kontra-teg se računa kao 70% mase ekrana radi stabilnosti konstrukcije.")
 
 # --- PRORAČUNI ---
-p_dopuna = baza_panela["P2.9 Plavi 168x168px"]
-
+if "P3.9" in izbor:
+    p_dopuna = baza_panela["P3.9 Crni 128x128px"]
+else:
+    p_dopuna = baza_panela["P2.9 Plavi 168x168px"]
+    
 br_sirina = math.ceil((sirina_m * 1000) / p['sirina'])
 br_visina_glavni = math.ceil((visina_m * 1000) / p['visina'])
 
