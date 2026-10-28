@@ -203,3 +203,8 @@ else:
 
 st.divider()
 st.caption("v39 - by Dejan Popovic")
+
+try:
+    st.image("logo.png", width=180)
+except:
+    st.write("PROSOUND")
