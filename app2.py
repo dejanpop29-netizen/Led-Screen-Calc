@@ -254,7 +254,7 @@ else:
             p_brojac += 1
             panel_indeksi_mapa[(row, col)] = p_brojac
 
-# --- SKALABILNA FUNKCIJA ZA PRIKAZ (RESPONZIVNO PROCENTUALNO) ---
+# --- SKALABILNA FUNKCIJA ZA PRIKAZ (ISPRAVLJEN DIV) ---
 def generisi_skaliranu_smeu(matrica, mapa_linija, ukupno_linija, panela_po_liniji, naziv_tipa, hercaza_val=None):
     html_out = f"""
     <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; width: 100%; box-sizing: border-box;">
@@ -270,7 +270,6 @@ def generisi_skaliranu_smeu(matrica, mapa_linija, ukupno_linija, panela_po_linij
             h_visina = "35px" if panel["tip"] == "dopuna" else "55px"
             tekst_vrsta = "0.5m" if panel["tip"] == "dopuna" else f"P{p_idx}"
             
-            # Fleksibilna procentualna širina da uvek stane u ekran bez skrola
             sirina_procenat = f"calc({100 / br_sirina}% - 2px)"
             
             html_out += f'''
@@ -278,7 +277,7 @@ def generisi_skaliranu_smeu(matrica, mapa_linija, ukupno_linija, panela_po_linij
                 <span style="font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{tekst_vrsta}</span>
                 <span style="font-size: 7px; background: rgba(0,0,0,0.4); padding: 1px 2px; border-radius: 2px; margin-top: 1px;">{naziv_tipa[0]}{line_num}</span>
             </div>'''
-        html_out += 'div>'
+        html_out += '</div>'
         
     dodatni_info = f"(@{hercaza_val}Hz)" if hercaza_val else ""
     html_out += f"""
@@ -312,7 +311,7 @@ st.components.v1.html(grid_s_html, height=visina_ifrejma)
 st.divider()
 
 # ==========================================
-# 2. DATA / SIGNALNE LINIJE (ETHERCON)
+# 2. DATA / SIGNALne LINIJE (ETHERCON)
 # ==========================================
 st.subheader("Predlog signalnih linija (Ethercon)")
 st.markdown(f"Smer: **{smer_povezivanja}** | Ukupno **{broj_data_linija}** data linija (@{hercaza}Hz).")
@@ -320,7 +319,7 @@ grid_d_html = generisi_skaliranu_smeu(matrica_panela, data_linija_mapa, broj_dat
 st.components.v1.html(grid_d_html, height=visina_ifrejma)
 
 st.divider()
-st.caption("v52 - by Dejan Popovic")
+st.caption("v52.1 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
