@@ -100,43 +100,4 @@ m2.metric("Dimenzije", f"{stvarna_s}m x {stvarna_v}m", f"{kvadratura:.2f} m²")
 m3.metric("Rezolucija", f"{res_x}x{res_y} px", aspect_ratio)
 
 st.divider()
-st.subheader(f"Potrošnja: {potrosnja_kw:.2f} kW")
-st.write(f"Strujni priključak: {prikljucak}")
-st.divider()
-
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.subheader("Data (Ethercon)")
-    st.write(f"Limit (@{hercaza}Hz): **{pixel_limit:,} px**")
-    st.info(f"Glavnih data linija: **{glavnih_data}**\n\nLinkovanih panela: **{ukupno_panela - glavnih_data}**")
-
-with c2:
-    st.subheader("Struja (Powercon)")
-    st.write("Limit: **3000 W** po kablu")
-    st.warning(f"Glavnih strujnih izvoda: **{glavnih_stru_izv}**\n\nLinkovanih panela: **{ukupno_panela - glavnih_stru_izv}**")
-
-with c3:
-    if tip_montaze == "Ground Support":
-        st.subheader("Težina & Tegovi")
-        st.write(f" Lokacija: **Indoor**")
-        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**\n\nKontra-teg: **{teg:.1f} kg**")
-    else:
-        st.subheader("Težina & Rigging")
-        st.write(f" Lokacija: **Hanging**")
-        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**")
-
-st.divider()
-
-# --- PALETA BOJA ZA RAZLIČITE LINIJE ---
-boje_linija = [
-    "#0083b8", # Plava
-    "#28a745", # Zelena
-    "#ffc107", # Žuta
-    "#e83e8c", # Roza
-    "#6f42c1", # Ljubičasta
-    "#fd7e14", # Narandžasta
-    "#20c997", # Tirkizna
-    "#6c757d"  # Siva
-]
-
-def get
+st.subheader(f"Potrošnja: {potrosnja_kw:.2f}
