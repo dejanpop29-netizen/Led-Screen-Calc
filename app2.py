@@ -32,7 +32,11 @@ with st.sidebar:
      
     st.divider()
     tip_montaze = st.radio("Tip montaže:", ["Ground Support", "Hanging"])
-    smer_povezivanja = st.radio("Smer linija kablova:", ["Zmijoliko (Snake po redovima)", "Vertikalno (Po kolonama)"])
+     nacin_kabliranja = st.radio("Logika rasporeda linija:", [
+        "Zmijoliko po redovima (Snake)", 
+        "Celi redovi (Najbolje za teren)", 
+        "Vertikalno po stubovima"
+    ])
     
     st.info("ℹ️ Režim rada: Indoor. Kontra-teg se računa kao 70% mase ekrana radi stabilnosti konstrukcije.")
 
@@ -216,18 +220,7 @@ boje_linija = [
 def get_boja(index_linije):
     return boje_linija[(index_linije - 1) % len(boje_linija)]
 
-# --- PRORAČUN RAVNOMERNOG RASPOREDA ---
-broj_strujnih_linija = max(1, glavnih_stru_izv)
-panela_po_strujnoj_liniji = math.ceil(ukupno_panela / broj_strujnih_linija)
-
-broj_data_linija = max(1, glavnih_data)
-panela_po_data_liniji = math.ceil(ukupno_panela / broj_data_linija)
-
-base_w = 60
-main_h = int(base_w * (p['visina'] / p['sirina']))
-dop_h = int(base_w * (p_dopuna['visina'] / p_dopuna['sirina'])) if half_meter else 30
-
-# Kreiranje matrice panela radi lakšeg indeksiranja (red x kolona)
+# --- MATRICA PANELA ---
 matrica_panela = []
 
 if half_meter:
@@ -243,33 +236,66 @@ for row in range(br_visina_glavni):
     matrica_panela.append(red_glavni)
 
 uk_redova = len(matrica_panela)
-panel_indeksi_mapa = {} 
+
+# Mapiranje ID panela i linija prema odabranoj logici
+panel_indeksi_mapa = {}
+struja_linija_mapa = {}
+data_linija_mapa = {}
 
 p_brojac = 0
-if "Vertikalno" in smer_povezivanja:
+if "Vertikalno" in nacin_kabliranja:
+    # Vertikalno po stubovima
+    panela_po_s_liniji = max(1, math.ceil(ukupno_panela / max(1, glavnih_stru_izv)))
+    panela_po_d_liniji = max(1, math.ceil(ukupno_panela / max(1, glavnih_data)))
+    
     for col in range(br_sirina):
         for row in range(uk_redova - 1, -1, -1):
             p_brojac += 1
             panel_indeksi_mapa[(row, col)] = p_brojac
-else:
-    for row in range(uk_redova):
-        cols_iter = range(br_sirina) if row % 2 == 0 else range(br_sirina - 1, -1, -1)
-        for col in cols_iter:
+            struja_linija_mapa[(row, col)] = min(glavnih_stru_izv, math.ceil(p_brojac / panela_po_s_liniji))
+            data_linija_mapa[(row, col)] = min(glavnih_data, math.ceil(p_brojac / panela_po_d_liniji))
+
+elif "Celi redovi" in nacin_kabliranja:
+    # Svaki red (ili grupa redova) je zasebna čista linija
+    # Broj linija se prilagođava broju redova ili limitima
+    redova_po_liniji = max(1, math.ceil(uk_redova / max(1, glavnih_data)))
+    
+    for row_idx, red in enumerate(matrica_panela):
+        s_linija = min(glavnih_stru_izv, math.floor(row_idx / max(1, math.ceil(uk_redova / glavnih_stru_izv))) + 1)
+        d_linija = min(glavnih_data, math.floor(row_idx / redova_po_liniji) + 1)
+        
+        # Zmijoliko unutar reda da bude uredno
+        cols_iter = range(br_sirina) if row_idx % 2 == 0 else range(br_sirina - 1, -1, -1)
+        for col_idx in cols_iter:
             p_brojac += 1
-            panel_indeksi_mapa[(row, col)] = p_brojac
+            panel_indeksi_mapa[(row_idx, col_idx)] = p_brojac
+            struja_linija_mapa[(row_idx, col_idx)] = s_linija
+            data_linija_mapa[(row_idx, col_idx)] = d_linija
+else:
+    # Čist Zmijoliki (Snake) redosled sa kontinualnim prenosom
+    panela_po_s_liniji = max(1, math.ceil(ukupno_panela / max(1, glavnih_stru_izv)))
+    panela_po_d_liniji = max(1, math.ceil(ukupno_panela / max(1, glavnih_data)))
+    
+    for row_idx, red in enumerate(matrica_panela):
+        cols_iter = range(br_sirina) if row_idx % 2 == 0 else range(br_sirina - 1, -1, -1)
+        for col_idx in cols_iter:
+            p_brojac += 1
+            panel_indeksi_mapa[(row_idx, col_idx)] = p_brojac
+            struja_linija_mapa[(row_idx, col_idx)] = min(glavnih_stru_izv, math.ceil(p_brojac / panela_po_s_liniji))
+            data_linija_mapa[(row_idx, col_idx)] = min(glavnih_data, math.ceil(p_brojac / panela_po_d_liniji))
 
 # ==========================================
 # 1. STRUJNE LINIJE (POWERCON)
 # ==========================================
 st.subheader("⚡ Vizuelni prikaz strujnih linija (Powercon)")
-st.markdown(f"Smer: **{smer_povezivanja}** | Ukupno **{broj_strujnih_linija}** strujnih izvoda.")
+st.markdown(f"Režim: **{nacin_kabliranja}**")
 
 struja_html = ""
 for row_idx, red in enumerate(matrica_panela):
     struja_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
     for col_idx, panel in enumerate(red):
         p_idx = panel_indeksi_mapa[(row_idx, col_idx)]
-        s_line = min(broj_strujnih_linija, math.ceil(p_idx / panela_po_strujnoj_liniji))
+        s_line = struja_linija_mapa[(row_idx, col_idx)]
         boja = get_boja(s_line)
         
         h_visina = dop_h if panel["tip"] == "dopuna" else main_h
@@ -286,7 +312,7 @@ grid_struja = f"""
 <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto; text-align: center;">
     {struja_html}
     <p style="font-size: 11px; color: #a0a0a0; margin-top: 10px; font-family: sans-serif;">
-        ⚡ Strujnih linija: <b>{broj_strujnih_linija}</b> (~{panela_po_strujnoj_liniji} panela po liniji)
+        ⚡ Prikaz strujnih izvoda po odabranoj šemi kabliranja.
     </p>
 </div>
 """
@@ -298,14 +324,14 @@ st.divider()
 # 2. DATA / SIGNALNE LINIJE (ETHERCON)
 # ==========================================
 st.subheader("🌐 Vizuelni prikaz data / signalnih linija (Ethercon)")
-st.markdown(f"Smer: **{smer_povezivanja}** | Ukupno **{broj_data_linija}** data linija (@{hercaza}Hz).")
+st.markdown(f"Režim: **{nacin_kabliranja}** | Hercaza: **{hercaza}Hz**")
 
 data_html = ""
 for row_idx, red in enumerate(matrica_panela):
     data_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
     for col_idx, panel in enumerate(red):
         p_idx = panel_indeksi_mapa[(row_idx, col_idx)]
-        d_line = min(broj_data_linija, math.ceil(p_idx / panela_po_data_liniji))
+        d_line = data_linija_mapa[(row_idx, col_idx)]
         boja = get_boja(d_line)
         
         h_visina = dop_h if panel["tip"] == "dopuna" else main_h
@@ -322,14 +348,14 @@ grid_data = f"""
 <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto; text-align: center;">
     {data_html}
     <p style="font-size: 11px; color: #a0a0a0; margin-top: 10px; font-family: sans-serif;">
-        🌐 Data linija: <b>{broj_data_linija}</b> (~{panela_po_data_liniji} panela po liniji)
+        🌐 Prikaz data linija prilagođen terenskim link kablovima.
     </p>
 </div>
 """
 st.components.v1.html(grid_data, height=110 + ((br_visina_glavni * main_h) + (dop_h if half_meter else 0)))
 
 st.divider()
-st.caption("v50 - by Dejan Popovic")
+st.caption("v51 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
