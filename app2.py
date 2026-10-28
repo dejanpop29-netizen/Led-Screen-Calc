@@ -114,7 +114,7 @@ with c1:
 with c2:
     st.subheader("Struja (Powercon)")
     st.write("Limit: **3000 W** po kablu")
-    st.warning(f"Preporučeno izvoda: **{glavnih_stru_izv}**")
+    st.warning(f"Preporučeno linija: **{glavnih_stru_izv}**")
 
 with c3:
     if tip_montaze == "Ground Support":
@@ -170,7 +170,7 @@ if tip_montaze == "Ground Support":
     with col_s3:
         st.write("**Balast (Tegovi)**")
         st.error(f"**Ukupno: {ukupni_balast:.1f} kg**")
-        st.info(f"Po stopi: **{ukupni_balast/broj_stubova:.1f} kg**")
+        st.info(f"Po stopi(Ground Support): **{ukupni_balast/broj_stubova:.1f} kg**")
 
     if v > nivoi_u_vis:
         st.warning(f"⚠️ Ekran je viši od konstrukcije za {round(v - nivoi_u_vis, 2)}m. Gornji deo panela nema Backframe potporu.")
@@ -261,7 +261,7 @@ else:
 # ==========================================
 # 1. STRUJNE LINIJE (POWERCON)
 # ==========================================
-st.subheader("⚡ Vizuelni prikaz strujnih linija (Powercon)")
+st.subheader("Predlog strujnih linija (Powercon)")
 st.markdown(f"Smer: **{smer_povezivanja}** | Ukupno **{broj_strujnih_linija}** strujnih izvoda.")
 
 struja_html = ""
@@ -297,7 +297,7 @@ st.divider()
 # ==========================================
 # 2. DATA / SIGNALNE LINIJE (ETHERCON)
 # ==========================================
-st.subheader("🌐 Vizuelni prikaz data / signalnih linija (Ethercon)")
+st.subheader("Predlog signalnih linija (Ethercon)")
 st.markdown(f"Smer: **{smer_povezivanja}** | Ukupno **{broj_data_linija}** data linija (@{hercaza}Hz).")
 
 data_html = ""
