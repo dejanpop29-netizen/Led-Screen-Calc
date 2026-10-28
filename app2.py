@@ -131,47 +131,28 @@ st.divider()
 st.subheader("🗺️ Vizuelni prikaz rasporeda panela (Grid Preview)")
 st.markdown(f"Prikaz šeme ekrana: **{br_sirina}** panela širinski x **{br_visina_glavni + (0.5 if half_meter else 0)}** panela visinski")
 
-# Generisanje HTML/CSS prikaza mreže panela
-grid_html = f"""
-<div style="display: flex; flex-direction: column; gap: 4px; align-items: center; background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto;">
-"""
-
-# Ako postoji dopunski red na vrhu
+redovi_html = ""
 if half_meter:
-    grid_html += f"""
-    <div style="display: flex; gap: 4px;">
-    """
+    redovi_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
     for _ in range(br_sirina):
-        grid_html += f"""
-        <div style="width: 50px; height: 25px; background-color: #ff4b4b; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; border-radius: 3px;" title="0.5m Panel">
-            0.5m
-        </div>
-        """
-    grid_html += f"""
-    </div>
-    """
+        redovi_html += '<div style="width: 50px; height: 25px; background-color: #ff4b4b; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; border-radius: 3px;" title="0.5m Panel">0.5m</div>'
+    redovi_html += '</div>'
 
-# Glavni redovi panela (od vrha ka dnu)
 for row in range(br_visina_glavni):
-    grid_html += f"""
-    <div style="display: flex; gap: 4px;">
-    """
+    redovi_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
     for col in range(br_sirina):
-        grid_html += f"""
-        <div style="width: 50px; height: 50px; background-color: #0083b8; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; border-radius: 3px;" title="Glavni Panel">
-            {p['sirina']}x{p['visina']}
-        </div>
-        """
-    grid_html += f"""
-    </div>
-    """
+        redovi_html += f'<div style="width: 50px; height: 50px; background-color: #0083b8; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; border-radius: 3px;" title="Glavni Panel">{p["sirina"]}x{p["visina"]}</div>'
+    redovi_html += '</div>'
 
-grid_html += f"""
+grid_html = f"""
+<div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto; text-align: center;">
+    {redovi_html}
+    <p style="font-size: 12px; color: gray; margin-top: 10px; font-family: sans-serif;">🔴 Crveni blokovi = 0.5m dopunski paneli na vrhu | 🔵 Plavi blokovi = Glavni paneli</p>
 </div>
-<p style="font-size: 12px; color: gray; text-align: center; margin-top: 5px;">🔴 Crveni blokovi = 0.5m dopunski paneli na vrhu | 🔵 Plavi blokovi = Glavni paneli</p>
 """
 
-st.markdown(grid_html, unsafe_allow_html=True)
+visina_iframa = 120 + ((br_visina_glavni + (1 if half_meter else 0)) * 55)
+st.components.v1.html(grid_html, height=visina_iframa)
 st.divider()
 
 # --- USLOVNI PRIKAZ SPECIFIKACIJE ---
@@ -246,7 +227,7 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-st.caption("v41.3 - by Dejan Popovic")
+st.caption("v42 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
