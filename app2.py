@@ -129,7 +129,7 @@ st.divider()
 
 # --- VIZUELNI PRIKAZ SLAGANJA PANELA (GRID PREVIEW) ---
 st.subheader("🗺️ Vizuelni prikaz rasporeda panela (Grid Preview)")
-st.write(f"Prikaz šeme ekrana: **{br_sirina}** panela širinski x **{br_visina_glavni + (0.5 if half_meter else 0)}** panela visinski")
+st.markdown(f"Prikaz šeme ekrana: **{br_sirina}** panela širinski x **{br_visina_glavni + (0.5 if half_meter else 0)}** panela visinski")
 
 # Generisanje HTML/CSS prikaza mreže panela
 grid_html = f"""
@@ -229,4 +229,27 @@ else:
     plocice = math.ceil(kvadratura)
     srafovi = plocice * 4
 
-    col_h1, col
+    col_h1, col_h2, col_h3 = st.columns(3)
+    with col_h1:
+        st.write(f"**Grid elementi**")
+        st.write(f"- Grid (1m): **{grid_1m}** kom")
+        if grid_05m > 0: st.write(f"- Grid (0.5m): **1** kom")
+    with col_h2:
+        st.write(f"**Rigging oprema**")
+        st.write(f"- Gurtna: **{shackles}** kom")
+        st.write(f"- Škopac: **{shackles}** kom")
+        st.write(f"- Stezna kopča: **{shackles}** kom")
+        st.write(f"- Okac: **{shackles}** kom")
+    with col_h3:
+        st.write(f"**Dodatni materijal**")
+        st.write(f"- Pločice: **{plocice}** kom")
+        st.write(f"- Šrafovi: **{srafovi}** kom")
+
+st.divider()
+st.caption("v41.3 - by Dejan Popovic")
+
+# Učitavanje logo fajla
+try:
+    st.image("logo.png", width=180)
+except:
+    st.write("PROSOUND")
