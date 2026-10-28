@@ -95,7 +95,7 @@ teg = masa_ekrana * 0.70
 
 # --- PRIKAZ NA EKRANU ---
 m1, m2, m3 = st.columns(3)
-m1.metric("Panela", f"{ukupno_panela} kom", f"Glavni: {broj_glavnih} | Dopuna: {broj_dopunskih} | Kejseva: {ukupno_kejseva}")
+m1.metric("Panela", f"{ukupno_panela} kom", f"Glavni: {br_sirina * br_visina_glavni} | Dopuna: {broj_dopunskih} | Kejseva: {ukupno_kejseva}")
 m2.metric("Dimenzije", f"{stvarna_s}m x {stvarna_v}m", f"{kvadratura:.2f} m²")
 m3.metric("Rezolucija", f"{res_x}x{res_y} px", aspect_ratio)
 
@@ -108,12 +108,12 @@ c1, c2, c3 = st.columns(3)
 with c1:
     st.subheader("Data (Ethercon)")
     st.write(f"Limit (@{hercaza}Hz): **{pixel_limit:,} px**")
-    st.info(f"Glavnih: **{glavnih_data}**\n\nLinkova: **{ukupno_panela - glavnih_data}**")
+    st.info(f"Glavnih data linija: **{glavnih_data}**\n\nLinkovanih panela: **{ukupno_panela - glavnih_data}**")
 
 with c2:
     st.subheader("Struja (Powercon)")
     st.write("Limit: **3000 W** po kablu")
-    st.warning(f"Glavnih: **{glavnih_stru_izv}**\n\nLinkova: **{ukupno_panela - glavnih_stru_izv}**")
+    st.warning(f"Glavnih strujnih izvoda: **{glavnih_stru_izv}**\n\nLinkovanih panela: **{ukupno_panela - glavnih_stru_izv}**")
 
 with c3:
     if tip_montaze == "Ground Support":
@@ -127,37 +127,61 @@ with c3:
 
 st.divider()
 
-# --- VIZUELNI PRIKAZ SLAGANJA PANELA (PROPORCIONALNI GRID PREVIEW) ---
-st.subheader("🗺️ Vizuelni prikaz rasporeda panela (Grid Preview)")
-st.markdown(f"Prikaz šeme ekrana: **{br_sirina}** panela širinski x **{br_visina_glavni + (0.5 if half_meter else 0)}** panela visinski")
+# --- VIZUELNI PRIKAZ SLAGANJA PANELA SA LINIJAMA STRUJE I SIGNALA ---
+st.subheader("🗺️ Vizuelni prikaz panela, strujnih i data linija")
+st.markdown(f"Šema ekrana: **{br_sirina}** panela širinski x **{br_visina_glavni + (0.5 if half_meter else 0)}** panela visinski")
 
-# Izračunavanje srazmernih dimenzija u pikselima na osnovu širine i visine panela
-base_w = 50
+# Proračun kapaciteta po liniji za vizuelizaciju
+panela_po_struju = max(1, math.floor(3000 / p['potrosnja']))
+panela_po_data = max(1, math.floor(pixel_limit / (p['res_x'] * p['res_y'])))
+
+base_w = 60
 main_h = int(base_w * (p['visina'] / p['sirina']))
-dop_h = int(base_w * (p_dopuna['visina'] / p_dopuna['sirina'])) if half_meter else 0
+dop_h = int(base_w * (p_dopuna['visina'] / p_dopuna['sirina'])) if half_meter else 30
 
 redovi_html = ""
+panel_index = 0
+
+# Prikaz dopunskog reda na vrhu ako postoji
 if half_meter:
-    redovi_html += f'<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
+    redovi_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
     for _ in range(br_sirina):
-        redovi_html += f'<div style="width: {base_w}px; height: {dop_h}px; background-color: #ff4b4b; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; font-weight: bold; border-radius: 3px;" title="0.5m Panel">{p_dopuna["visina"]}h</div>'
+        panel_index += 1
+        s_line = math.ceil(panel_index / panela_po_struju)
+        d_line = math.ceil(panel_index / panela_po_data)
+        redovi_html += f'''
+        <div style="width: {base_w}px; height: {dop_h}px; background-color: #ff4b4b; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: white; font-weight: bold; border-radius: 3px;" title="0.5m Panel | Struja S{s_line} | Data D{d_line}">
+            <span>0.5m</span>
+            <span style="font-size: 7px; color: #ffe6e6;">S{s_line}|D{d_line}</span>
+        </div>'''
     redovi_html += '</div>'
 
+# Prikaz glavnih redova panela
 for row in range(br_visina_glavni):
-    redovi_html += f'<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
+    redovi_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
     for col in range(br_sirina):
-        redovi_html += f'<div style="width: {base_w}px; height: {main_h}px; background-color: #0083b8; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; font-weight: bold; border-radius: 3px;" title="Glavni Panel">{p["visina"]}h</div>'
+        panel_index += 1
+        s_line = math.ceil(panel_index / panela_po_struju)
+        d_line = math.ceil(panel_index / panela_po_data)
+        redovi_html += f'''
+        <div style="width: {base_w}px; height: {main_h}px; background-color: #0083b8; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; border-radius: 3px;" title="Glavni Panel | Struja S{s_line} | Data D{d_line}">
+            <span>P{panel_index}</span>
+            <span style="font-size: 7px; color: #d1f3ff;">S{s_line} | D{d_line}</span>
+        </div>'''
     redovi_html += '</div>'
 
 grid_html = f"""
 <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto; text-align: center;">
     {redovi_html}
-    <p style="font-size: 12px; color: gray; margin-top: 10px; font-family: sans-serif;">🔴 Crveni blokovi = 0.5m dopunski paneli na vrhu | 🔵 Plavi blokovi = Glavni paneli (proporcionalno dimenzijama)</p>
+    <p style="font-size: 11px; color: #a0a0a0; margin-top: 10px; font-family: sans-serif;">
+        🔴 Crveni = 0.5m dopunski paneli | 🔵 Plavi = Glavni paneli<br>
+        <b>S</b> = Strujna linija (Powercon izvod do 3000W) | <b>D</b> = Data linija (Ethercon link preko piksel limita)
+    </p>
 </div>
 """
 
 total_rows_h = (br_visina_glavni * main_h) + (dop_h if half_meter else 0)
-visina_iframa = 110 + total_rows_h + (br_visina_glavni * 4)
+visina_iframa = 130 + total_rows_h + (br_visina_glavni * 6)
 st.components.v1.html(grid_html, height=visina_iframa)
 st.divider()
 
@@ -233,7 +257,7 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-st.caption("v43 - by Dejan Popovic")
+st.caption("v44 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
