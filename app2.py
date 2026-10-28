@@ -32,7 +32,7 @@ with st.sidebar:
      
     st.divider()
     tip_montaze = st.radio("Tip montaže:", ["Ground Support", "Hanging"])
-    smer_povezivanja = st.radio("Smer linija kablova:", ["Horizontalno (Po redovima)", "Vertikalno (Po kolonama)"])
+    smer_povezivanja = st.radio("Smer linija kablova:", ["Zmijoliko (Snake po redovima)", "Vertikalno (Po kolonama)"])
     
     st.info("ℹ️ Režim rada: Indoor. Kontra-teg se računa kao 70% mase ekrana radi stabilnosti konstrukcije.")
 
@@ -155,7 +155,6 @@ main_h = int(base_w * (p['visina'] / p['sirina']))
 dop_h = int(base_w * (p_dopuna['visina'] / p_dopuna['sirina'])) if half_meter else 30
 
 # Kreiranje matrice panela radi lakšeg indeksiranja (red x kolona)
-# Matrica čuva podatke o panelu: tip ('dopuna' ili 'glavni'), i globalni red/kolona
 matrica_panela = []
 
 if half_meter:
@@ -170,22 +169,22 @@ for row in range(br_visina_glavni):
         red_glavni.append({"tip": "glavni", "r": row, "c": col})
     matrica_panela.append(red_glavni)
 
-# Mapiranje indeksa panela u zavisnosti od smera povezivanja
-# Ukupno redova u matrici:
 uk_redova = len(matrica_panela)
-panel_indeksi_mapa = {} # ključ: (r_idx, c_idx), vrednost: redni broj panela (1 do ukupno_panela)
+panel_indeksi_mapa = {} 
 
 p_brojac = 0
 if "Vertikalno" in smer_povezivanja:
-    # Kolona po kolonu (od levo ka desno, a u koloni od dnu ka vrhu ili vrhu ka dnu)
+    # Kolona po kolonu (od dole ka vrhu)
     for col in range(br_sirina):
-        for row in range(uk_redova - 1, -1, -1): # Od dole ka gore po koloni
+        for row in range(uk_redova - 1, -1, -1):
             p_brojac += 1
             panel_indeksi_mapa[(row, col)] = p_brojac
 else:
-    # Standardno horizontalno (Red po red, od gore ka dnu)
+    # Zmijoliki (Snake) redosled po redovima: 
+    # Neparni redovi (0, 2...) idu s leva na desno, parni (1, 3...) idu s desna na levo
     for row in range(uk_redova):
-        for col in range(br_sirina):
+        cols_iter = range(br_sirina) if row % 2 == 0 else range(br_sirina - 1, -1, -1)
+        for col in cols_iter:
             p_brojac += 1
             panel_indeksi_mapa[(row, col)] = p_brojac
 
@@ -226,7 +225,7 @@ st.components.v1.html(grid_struja, height=110 + ((br_visina_glavni * main_h) + (
 st.divider()
 
 # ==========================================
-# 2. DATA / SIGNALne LINIJE (ETHERCON)
+# 2. DATA / SIGNALNE LINIJE (ETHERCON)
 # ==========================================
 st.subheader("🌐 Vizuelni prikaz data / signalnih linija (Ethercon)")
 st.markdown(f"Smer: **{smer_povezivanja}** | Ukupno **{broj_data_linija}** data linija (@{hercaza}Hz).")
@@ -333,7 +332,7 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-st.caption("v48 - by Dejan Popovic")
+st.caption("v49 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
