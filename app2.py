@@ -253,16 +253,14 @@ else:
             p_brojac += 1
             panel_indeksi_mapa[(row, col)] = p_brojac
 
-# --- PROPORCIONALNA FIZIČKA FUNKCIJA (KLIZAČ TEK PREKO 15 METARA) ---
+# --- UNAPREĐENA FUNKCIJA SA POČETKOM, KRAJEM I SMEROM SIGNALA ---
 def generisi_proporcionalnu_smeu(matrica, mapa_linija, ukupno_linija, panela_po_liniji, naziv_tipa, hercaza_val=None):
-    veliki_ekran = stvarna_s > 15.0  # Provera da li je širina veća od 15m
+    veliki_ekran = stvarna_s > 15.0  # Klizač se aktivira preko 15m širine
     
-    # Proračun tačnih visina na osnovu proporcije iz baze (sirina x visina)
     odnos_glavni = p['visina'] / p['sirina']
     odnos_dopuna = (p_dopuna['visina'] / p_dopuna['sirina']) if half_meter else 0.5
     
     if veliki_ekran:
-        # Fiksne dimenzije za ekrane šire od 15m (aktivira klizač)
         sirina_css = "60px"
         visina_glavni_px = int(60 * odnos_glavni)
         visina_dopuna_px = int(60 * odnos_dopuna)
@@ -270,15 +268,25 @@ def generisi_proporcionalnu_smeu(matrica, mapa_linija, ukupno_linija, panela_po_
         skrol_stil = "overflow-x: auto;"
         poruka_klizac = " — <i>Aktiviran horizontalni klizač (širina > 15m)</i>"
     else:
-        # Automatsko procentualno uklapanje za ekrane do 15m (bez klizača)
         sirina_css = f"calc({100 / br_sirina}% - 2px)"
-        # Dinamička visina zavisno od broja kolona radi tačnih proporcija
         bazna_visina = max(30, min(80, int(600 / br_sirina)))
         visina_glavni_px = int(bazna_visina * odnos_glavni)
         visina_dopuna_px = int(bazna_visina * odnos_dopuna)
         min_sirina_px = 0
         skrol_stil = "overflow-x: hidden;"
         poruka_klizac = ""
+
+    # Pronalazimo prvi i poslednji panel za svaku liniju da ih obeležimo sa IN / OUT
+    linija_min_p = {}
+    linija_max_p = {}
+    for r_idx, red in enumerate(matrica):
+        for c_idx, panel in enumerate(red):
+            p_id = panel_indeksi_mapa[(r_idx, c_idx)]
+            l_num = mapa_linija[(r_idx, c_idx)]
+            if l_num not in linija_min_p or p_id < linija_min_p[l_num]:
+                linija_min_p[l_num] = p_id
+            if l_num not in linija_max_p or p_id > linija_max_p[l_num]:
+                linija_max_p[l_num] = p_id
 
     html_out = f"""
     <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; width: 100%; {skrol_stil} box-sizing: border-box;">
@@ -295,9 +303,28 @@ def generisi_proporcionalnu_smeu(matrica, mapa_linija, ukupno_linija, panela_po_
             h_visina = f"{visina_dopuna_px}px" if panel["tip"] == "dopuna" else f"{visina_glavni_px}px"
             tekst_vrsta = "0.5m" if panel["tip"] == "dopuna" else f"P{p_idx}"
             
+            # Određivanje oznake za početak (IN) i kraj (OUT) linije
+            oznaka_statusa = ""
+            if p_idx == linija_min_p.get(line_num):
+                oznaka_statusa = '<span style="font-size: 6px; background: #28a745; color: white; padding: 1px 2px; border-radius: 2px; margin-bottom: 1px;">IN ◀</span>'
+            elif p_idx == linija_max_p.get(line_num):
+                oznaka_statusa = '<span style="font-size: 6px; background: #dc3545; color: white; padding: 1px 2px; border-radius: 2px; margin-bottom: 1px;">OUT ◼</span>'
+            
+            # Određivanje strelice smera kretanja signala
+            strelica = "➔"
+            if "Vertikalno" in smer_povezivanja:
+                strelica = "⬆"
+            else:
+                # Zmijoliki smera zavisi od reda (parni s leva na desno, neparni obrnuto)
+                if row_idx % 2 != 0:
+                    strelica = "⬅"
+                else:
+                    strelica = "➔"
+
             html_out += f'''
             <div style="width: {sirina_css}; min-width: {sirina_css if veliki_ekran else '0'}; height: {h_visina}; background-color: {boja}; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; border-radius: 2px;" title="Panel {p_idx} | {naziv_tipa} {line_num}">
-                <span style="font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{tekst_vrsta}</span>
+                {oznaka_statusa}
+                <span style="font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{tekst_vrsta} {strelica}</span>
                 <span style="font-size: 7px; background: rgba(0,0,0,0.4); padding: 1px 2px; border-radius: 2px; margin-top: 1px;">{naziv_tipa[0]}{line_num}</span>
             </div>'''
         html_out += '</div>'
@@ -325,7 +352,7 @@ for row_idx, red in enumerate(matrica_panela):
 # Dinamička visina okvira prema proporciji
 odnos_v = p['visina'] / p['sirina']
 visina_reda_px = int(60 * odnos_v) if stvarna_s > 15.0 else max(35, int(600 / br_sirina * odnos_v))
-visina_ifrejma = 120 + (uk_redova * (visina_reda_px + 4))
+visina_ifrejma = 125 + (uk_redova * (visina_reda_px + 6))
 
 # ==========================================
 # 1. STRUJNE LINIJE (POWERCON)
@@ -346,7 +373,7 @@ grid_d_html = generisi_proporcionalnu_smeu(matrica_panela, data_linija_mapa, bro
 st.components.v1.html(grid_d_html, height=visina_ifrejma)
 
 st.divider()
-st.caption("v54 - by Dejan Popovic")
+st.caption("v55 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
