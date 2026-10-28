@@ -98,6 +98,11 @@ glavnih_stru_izv = math.ceil(potrosnja_w / 3000)
 # STATIKA
 teg = masa_ekrana * 0.70
 
+# --- DIMENZIJE ZA VIZUELNI PRIKAZ ---
+base_w = 60
+main_h = int(base_w * (p['visina'] / p['sirina']))
+dop_h = int(base_w * (p_dopuna['visina'] / p_dopuna['sirina'])) if half_meter else 30
+
 # --- PRIKAZ NA EKRANU ---
 m1, m2, m3 = st.columns(3)
 m1.metric("Panela", f"{ukupno_panela} kom", f"Glavni: {broj_glavnih} | Dopuna: {broj_dopunskih} | Kejseva: {ukupno_kejseva}")
@@ -349,7 +354,7 @@ grid_data = f"""
 st.components.v1.html(grid_data, height=110 + ((br_visina_glavni * main_h) + (dop_h if half_meter else 0)))
 
 st.divider()
-st.caption("v51.1 - by Dejan Popovic")
+st.caption("v51.2 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
