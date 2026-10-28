@@ -95,7 +95,7 @@ teg = masa_ekrana * 0.70
 
 # --- PRIKAZ NA EKRANU ---
 m1, m2, m3 = st.columns(3)
-m1.metric("Panela", f"{ukupno_panela} kom", f"Glavni: {br_sirina * br_visina_glavni} | Dopuna: {broj_dopunskih} | Kejseva: {ukupno_kejseva}")
+m1.metric("Panela", f"{ukupno_panela} kom", f"Glavni: {broj_glavnih} | Dopuna: {broj_dopunskih} | Kejseva: {ukupno_kejseva}")
 m2.metric("Dimenzije", f"{stvarna_s}m x {stvarna_v}m", f"{kvadratura:.2f} m²")
 m3.metric("Rezolucija", f"{res_x}x{res_y} px", aspect_ratio)
 
@@ -108,12 +108,12 @@ c1, c2, c3 = st.columns(3)
 with c1:
     st.subheader("Data (Ethercon)")
     st.write(f"Limit (@{hercaza}Hz): **{pixel_limit:,} px**")
-    st.info(f"Glavnih data linija: **{glavnih_data}**\n\nLinkovanih panela: **{ukupno_panela - glavnih_data}**")
+    st.info(f"Preporučeno linija: **{glavnih_data}**")
 
 with c2:
     st.subheader("Struja (Powercon)")
     st.write("Limit: **3000 W** po kablu")
-    st.warning(f"Glavnih strujnih izvoda: **{glavnih_stru_izv}**\n\nLinkovanih panela: **{ukupno_panela - glavnih_stru_izv}**")
+    st.warning(f"Preporučeno izvoda: **{glavnih_stru_izv}**")
 
 with c3:
     if tip_montaze == "Ground Support":
@@ -127,7 +127,7 @@ with c3:
 
 st.divider()
 
-# --- PALETA BOJA ZA RAZLIČITE LINIJE ---
+# --- PALETA BOJA ZA LINIJE ---
 boje_linija = [
     "#0083b8", # Plava
     "#28a745", # Zelena
@@ -142,19 +142,26 @@ boje_linija = [
 def get_boja(index_linije):
     return boje_linija[(index_linije - 1) % len(boje_linija)]
 
-# --- PRORAČUN KAPACITETA ---
-panela_po_struju = max(1, math.floor(3000 / p['potrosnja']))
-panela_po_data = max(1, math.floor(pixel_limit / (p['res_x'] * p['res_y'])))
+# --- PAMETNA RAVNOMERNA PODELA LINIJA ---
+# Automatski delimo ukupan broj panela na tačno onoliko jednakih delova 
+# koliko nalažu minimalni tehnički limiti (glavnih_stru_izv / glavnih_data),
+# tako da svaka linija ima identičan broj panela (npr. 60 panela / 3 linije = tačno 20 po liniji).
+
+broj_strujnih_linija = max(1, glavnih_stru_izv)
+panela_po_strujnoj_liniji = math.ceil(ukupno_panela / broj_strujnih_linija)
+
+broj_data_linija = max(1, glavnih_data)
+panela_po_data_liniji = math.ceil(ukupno_panela / broj_data_linija)
 
 base_w = 60
 main_h = int(base_w * (p['visina'] / p['sirina']))
 dop_h = int(base_w * (p_dopuna['visina'] / p_dopuna['sirina'])) if half_meter else 30
 
 # ==========================================
-# 1. VIZUELNI PRIKAZ: STRUJNE LINIJE (POWER)
+# 1. STRUJNE LINIJE (RAVNOMERNO RASPOREĐENE)
 # ==========================================
-st.subheader("⚡ Vizuelni prikaz strujnih linija (Powercon)")
-st.markdown("Svaka boja i oznaka (**S1, S2...**) predstavlja zasebnu strujnu liniju (maksimalno do 3000W po liniji).")
+st.subheader("⚡ Vizuelni prikaz strujnih linija (Powercon - Ravnomerne grupe)")
+st.markdown(f"Ukupno **{broj_strujnih_linija}** strujna/e izvoda, sa ravnomerno raspoređenim panelima po liniji.")
 
 struja_html = ""
 p_idx = 0
@@ -163,7 +170,7 @@ if half_meter:
     struja_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
     for _ in range(br_sirina):
         p_idx += 1
-        s_line = math.ceil(p_idx / panela_po_struju)
+        s_line = min(broj_strujnih_linija, math.ceil(p_idx / panela_po_strujnoj_liniji))
         boja = get_boja(s_line)
         struja_html += f'''
         <div style="width: {base_w}px; height: {dop_h}px; background-color: {boja}; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: white; font-weight: bold; border-radius: 3px;" title="0.5m Panel | Struja S{s_line}">
@@ -176,7 +183,7 @@ for row in range(br_visina_glavni):
     struja_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
     for col in range(br_sirina):
         p_idx += 1
-        s_line = math.ceil(p_idx / panela_po_struju)
+        s_line = min(broj_strujnih_linija, math.ceil(p_idx / panela_po_strujnoj_liniji))
         boja = get_boja(s_line)
         struja_html += f'''
         <div style="width: {base_w}px; height: {main_h}px; background-color: {boja}; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; border-radius: 3px;" title="Panel P{p_idx} | Struja S{s_line}">
@@ -189,7 +196,7 @@ grid_struja = f"""
 <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto; text-align: center;">
     {struja_html}
     <p style="font-size: 11px; color: #a0a0a0; margin-top: 10px; font-family: sans-serif;">
-        ⚡ Ukupno strujnih izvoda: <b>{glavnih_stru_izv}</b> | Svaka boja označava poseban strujni kabl.
+        ⚡ Broj strujnih linija: <b>{broj_strujnih_linija}</b> (~{panela_po_strujnoj_liniji} panela po liniji)
     </p>
 </div>
 """
@@ -198,10 +205,10 @@ st.components.v1.html(grid_struja, height=110 + ((br_visina_glavni * main_h) + (
 st.divider()
 
 # ==========================================
-# 2. VIZUELNI PRIKAZ: DATA / SIGNALNE LINIJE
+# 2. DATA / SIGNALNE LINIJE (RAVNOMERNO RASPOREĐENE)
 # ==========================================
-st.subheader("🌐 Vizuelni prikaz data / signalnih linija (Ethercon)")
-st.markdown("Svaka boja i oznaka (**D1, D2...**) predstavlja zasebnu data liniju u zavisnosti od ograničenja piksela na zadatoj hercaži.")
+st.subheader("🌐 Vizuelni prikaz data / signalnih linija (Ethercon - Ravnomerne grupe)")
+st.markdown(f"Ukupno **{broj_data_linija}** data linija (@{hercaza}Hz), ravnomerno podeljenih.")
 
 data_html = ""
 p_idx = 0
@@ -210,7 +217,7 @@ if half_meter:
     data_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
     for _ in range(br_sirina):
         p_idx += 1
-        d_line = math.ceil(p_idx / panela_po_data)
+        d_line = min(broj_data_linija, math.ceil(p_idx / panela_po_data_liniji))
         boja = get_boja(d_line)
         data_html += f'''
         <div style="width: {base_w}px; height: {dop_h}px; background-color: {boja}; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: white; font-weight: bold; border-radius: 3px;" title="0.5m Panel | Data D{d_line}">
@@ -223,7 +230,7 @@ for row in range(br_visina_glavni):
     data_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
     for col in range(br_sirina):
         p_idx += 1
-        d_line = math.ceil(p_idx / panela_po_data)
+        d_line = min(broj_data_linija, math.ceil(p_idx / panela_po_data_liniji))
         boja = get_boja(d_line)
         data_html += f'''
         <div style="width: {base_w}px; height: {main_h}px; background-color: {boja}; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; border-radius: 3px;" title="Panel P{p_idx} | Data D{d_line}">
@@ -236,7 +243,7 @@ grid_data = f"""
 <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto; text-align: center;">
     {data_html}
     <p style="font-size: 11px; color: #a0a0a0; margin-top: 10px; font-family: sans-serif;">
-        🌐 Ukupno data linija (@{hercaza}Hz): <b>{glavnih_data}</b> | Svaka boja označava poseban mrežni kabl.
+        🌐 Broj data linija: <b>{broj_data_linija}</b> (~{panela_po_data_liniji} panela po liniji)
     </p>
 </div>
 """
@@ -316,7 +323,7 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-st.caption("v46 - by Dejan Popovic")
+st.caption("v47 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
