@@ -127,6 +127,53 @@ with c3:
 
 st.divider()
 
+# --- VIZUELNI PRIKAZ SLAGANJA PANELA (GRID PREVIEW) ---
+st.subheader("🗺️ Vizuelni prikaz rasporeda panela (Grid Preview)")
+st.write(Prikaz šeme ekrana: **{br_sirina}** panela širinski x **{br_visina_glavni + (0.5 if half_meter else 0)}** panela visinski)
+
+# Generisanje HTML/CSS prikaza mreže panela
+grid_html = f"""
+<div style="display: flex; flex-direction: column; gap: 4px; align-items: center; background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto;">
+"""
+
+# Ako postoji dopunski red na vrhu
+if half_meter:
+    grid_html += f"""
+    <div style="display: flex; gap: 4px;">
+    """
+    for _ in range(br_sirina):
+        grid_html += f"""
+        <div style="width: 50px; height: 25px; background-color: #ff4b4b; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; border-radius: 3px;" title="0.5m Panel">
+            0.5m
+        </div>
+        """
+    grid_html += f"""
+    </div>
+    """
+
+# Glavni redovi panela (od vrha ka dnu)
+for row in range(br_visina_glavni):
+    grid_html += f"""
+    <div style="display: flex; gap: 4px;">
+    """
+    for col in range(br_sirina):
+        grid_html += f"""
+        <div style="width: 50px; height: 50px; background-color: #0083b8; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; border-radius: 3px;" title="Glavni Panel">
+            {p['sirina']}x{p['visina']}
+        </div>
+        """
+    grid_html += f"""
+    </div>
+    """
+
+grid_html += f"""
+</div>
+<p style="font-size: 12px; color: gray; text-align: center; margin-top: 5px;">🔴 Crveni blokovi = 0.5m dopunski paneli na vrhu | 🔵 Plavi blokovi = Glavni paneli</p>
+"""
+
+st.markdown(grid_html, unsafe_allow_html=True)
+st.divider()
+
 # --- USLOVNI PRIKAZ SPECIFIKACIJE ---
 if tip_montaze == "Ground Support":
     st.subheader("Specifikacija Ground Support elemenata")
@@ -148,10 +195,7 @@ if tip_montaze == "Ground Support":
     rear_brace_kom = ukupno_backframe
     ukupni_balast = stvarna_s * balast_po_m
     
-    # Proračun gazišta za ekran: math.ceil za srazmerno zaokruživanje na gore, pa minus 1 (samo ako je visina > 2m)
     gazista_kom = int(math.ceil(stvarna_s) - 1) if v > 2.0 else 0
-    
-    # Proračun gazišta za tegove: na svakih 2m po jedno gazište
     gazista_tegova_kom = math.ceil(stvarna_s / 2) if v > 2.0 else 0
 
     col_s1, col_s2, col_s3 = st.columns(3)
@@ -202,8 +246,9 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-st.caption("v39 - by Dejan Popovic")
+st.caption("v41 - by Dejan Popovic")
 
+# Učitavanje logo fajla
 try:
     st.image("logo.png", width=180)
 except:
