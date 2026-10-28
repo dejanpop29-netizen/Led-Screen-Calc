@@ -167,12 +167,12 @@ if tip_montaze == "Ground Support":
         st.write(f"- Snajper: **{rear_brace_kom}** kom")
         if gazista_kom > 0:
             st.write(f"- Gazišta (ekran): **{gazista_kom}** kom")
+        if gazista_tegova_kom > 0:
+            st.write(f"- Gazišta (tegovi): **{gazista_tegova_kom}** kom")
     with col_s3:
         st.write(f"**Balast (Tegovi)**")
         st.error(f"**Ukupno: {ukupni_balast:.1f} kg**")
         st.info(f"Po stopi: **{ukupni_balast/broj_stubova:.1f} kg**")
-        if gazista_tegova_kom > 0:
-            st.write(f"- Gazišta (tegovi): **{gazista_tegova_kom}** kom")
 
     if v > nivoi_u_vis:
         st.warning(f"⚠️ Ekran je viši od konstrukcije za {round(v - nivoi_u_vis, 2)}m. Gornji deo panela nema Backframe potporu.")
@@ -202,4 +202,4 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-st.caption("v38 - by Dejan Popovic")
+st.caption("v39 - by Dejan Popovic")
