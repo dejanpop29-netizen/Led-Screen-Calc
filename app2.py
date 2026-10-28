@@ -104,4 +104,129 @@ st.subheader(f"Potrošnja: {potrosnja_kw:.2f} kW")
 st.write(f"Strujni priključak: {prikljucak}")
 st.divider()
 
-c1, c2, c3 = st.columns(
+c1, c2, c3 = st.columns(3)
+with c1:
+    st.subheader("Data (Ethercon)")
+    st.write(f"Limit (@{hercaza}Hz): **{pixel_limit:,} px**")
+    st.info(f"Glavnih: **{glavnih_data}**\n\nLinkova: **{ukupno_panela - glavnih_data}**")
+
+with c2:
+    st.subheader("Struja (Powercon)")
+    st.write("Limit: **3000 W** po kablu")
+    st.warning(f"Glavnih: **{glavnih_stru_izv}**\n\nLinkova: **{ukupno_panela - glavnih_stru_izv}**")
+
+with c3:
+    if tip_montaze == "Ground Support":
+        st.subheader("Težina & Tegovi")
+        st.write(f" Lokacija: **Indoor**")
+        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**\n\nKontra-teg: **{teg:.1f} kg**")
+    else:
+        st.subheader("Težina & Rigging")
+        st.write(f" Lokacija: **Hanging**")
+        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**")
+
+st.divider()
+
+# --- VIZUELNI PRIKAZ SLAGANJA PANELA (GRID PREVIEW) ---
+st.subheader("🗺️ Vizuelni prikaz rasporeda panela (Grid Preview)")
+st.write(f"Prikaz šeme ekrana: **{br_sirina}** panela širinski x **{br_visina_glavni + (0.5 if half_meter else 0)}** panela visinski")
+
+# Generisanje HTML/CSS prikaza mreže panela
+grid_html = f"""
+<div style="display: flex; flex-direction: column; gap: 4px; align-items: center; background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto;">
+"""
+
+# Ako postoji dopunski red na vrhu
+if half_meter:
+    grid_html += f"""
+    <div style="display: flex; gap: 4px;">
+    """
+    for _ in range(br_sirina):
+        grid_html += f"""
+        <div style="width: 50px; height: 25px; background-color: #ff4b4b; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; border-radius: 3px;" title="0.5m Panel">
+            0.5m
+        </div>
+        """
+    grid_html += f"""
+    </div>
+    """
+
+# Glavni redovi panela (od vrha ka dnu)
+for row in range(br_visina_glavni):
+    grid_html += f"""
+    <div style="display: flex; gap: 4px;">
+    """
+    for col in range(br_sirina):
+        grid_html += f"""
+        <div style="width: 50px; height: 50px; background-color: #0083b8; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: bold; border-radius: 3px;" title="Glavni Panel">
+            {p['sirina']}x{p['visina']}
+        </div>
+        """
+    grid_html += f"""
+    </div>
+    """
+
+grid_html += f"""
+</div>
+<p style="font-size: 12px; color: gray; text-align: center; margin-top: 5px;">🔴 Crveni blokovi = 0.5m dopunski paneli na vrhu | 🔵 Plavi blokovi = Glavni paneli</p>
+"""
+
+st.markdown(grid_html, unsafe_allow_html=True)
+st.divider()
+
+# --- USLOVNI PRIKAZ SPECIFIKACIJE ---
+if tip_montaze == "Ground Support":
+    st.subheader("Specifikacija Ground Support elemenata")
+    v = stvarna_v
+    if v <= 1.0: balast_po_m = 0.0
+    elif v <= 2.0: balast_po_m = 30.0
+    elif v <= 3.0: balast_po_m = 70.0
+    elif v <= 4.0: balast_po_m = 125.0
+    else: balast_po_m = 125.0 + ((v - 4.0) * 50.0)
+
+    grid_1m = int(stvarna_s // 1)
+    ostatak_sirine = stvarna_s % 1
+    grid_05m = 1 if ostatak_sirine > 0 else 0
+    broj_stubova = grid_1m + grid_05m
+
+    nivoi_u_vis = math.floor(v) if v >= 1.0 else 1 
+    ukupno_backframe = broj_stubova * nivoi_u_vis
+    teleskop_kom = (broj_stubova - 1) * nivoi_u_vis
+    rear_brace_kom = ukupno_backframe
+    ukupni_balast = stvarna_s * balast_po_m
+    
+    gazista_kom = int(math.ceil(stvarna_s) - 1) if v > 2.0 else 0
+    gazista_tegova_kom = math.ceil(stvarna_s / 2) if v > 2.0 else 0
+
+    col_s1, col_s2, col_s3 = st.columns(3)
+    with col_s1:
+        st.write(f"**Baza i stubovi**")
+        st.write(f"- Grid (1m): **{grid_1m}** kom")
+        if grid_05m > 0: st.write(f"- Grid (0.5m): **1** kom")
+        st.write(f"- Ground Support: **{broj_stubova}** kom")
+        st.write(f"- Backframe (1m): **{ukupno_backframe}** kom")
+    with col_s2:
+        st.write(f"**Povezivanje**")
+        st.write(f"- Teleskop: **{teleskop_kom}** kom")
+        st.write(f"- Snajper: **{rear_brace_kom}** kom")
+        if gazista_kom > 0:
+            st.write(f"- Gazišta (ekran): **{gazista_kom}** kom")
+        if gazista_tegova_kom > 0:
+            st.write(f"- Gazišta (tegovi): **{gazista_tegova_kom}** kom")
+    with col_s3:
+        st.write(f"**Balast (Tegovi)**")
+        st.error(f"**Ukupno: {ukupni_balast:.1f} kg**")
+        st.info(f"Po stopi: **{ukupni_balast/broj_stubova:.1f} kg**")
+
+    if v > nivoi_u_vis:
+        st.warning(f"⚠️ Ekran je viši od konstrukcije za {round(v - nivoi_u_vis, 2)}m. Gornji deo panela nema Backframe potporu.")
+
+else:
+    st.subheader("Specifikacija Hanging elemenata")
+    grid_1m = int(stvarna_s // 1)
+    grid_05m = 1 if (stvarna_s % 1) > 0 else 0
+    shackles = (grid_1m + grid_05m) * 2
+    plocice = math.ceil(kvadratura)
+    srafovi = plocice * 4
+
+    col_h1, col
