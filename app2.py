@@ -111,3 +111,32 @@ with c1:
     st.info(f"Glavnih data linija: **{glavnih_data}**\n\nLinkovanih panela: **{ukupno_panela - glavnih_data}**")
 
 with c2:
+    st.subheader("Struja (Powercon)")
+    st.write("Limit: **3000 W** po kablu")
+    st.warning(f"Glavnih strujnih izvoda: **{glavnih_stru_izv}**\n\nLinkovanih panela: **{ukupno_panela - glavnih_stru_izv}**")
+
+with c3:
+    if tip_montaze == "Ground Support":
+        st.subheader("Težina & Tegovi")
+        st.write(f" Lokacija: **Indoor**")
+        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**\n\nKontra-teg: **{teg:.1f} kg**")
+    else:
+        st.subheader("Težina & Rigging")
+        st.write(f" Lokacija: **Hanging**")
+        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**")
+
+st.divider()
+
+# --- PALETA BOJA ZA RAZLIČITE LINIJE ---
+boje_linija = [
+    "#0083b8", # Plava
+    "#28a745", # Zelena
+    "#ffc107", # Žuta
+    "#e83e8c", # Roza
+    "#6f42c1", # Ljubičasta
+    "#fd7e14", # Narandžasta
+    "#20c997", # Tirkizna
+    "#6c757d"  # Siva
+]
+
+def get
