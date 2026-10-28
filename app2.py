@@ -48,8 +48,6 @@ broj_glavnih = br_sirina * br_visina_glavni
 broj_dopunskih = br_sirina if half_meter else 0
 ukupno_panela = broj_glavnih + broj_dopunskih
 
-# Proračun potrebnih kejseva (za glavne i dopunske panele zasebno pa sabrano, ili ukupno)
-# Računamo ukupno kejseva na osnovu kapaciteta izabranog glavnog panela i dopunskog panela
 kejs_glavnih = math.ceil(broj_glavnih / p['po_kejsu'])
 kejs_dopunskih = math.ceil(broj_dopunskih / p_dopuna['po_kejsu']) if broj_dopunskih > 0 else 0
 ukupno_kejseva = kejs_glavnih + kejs_dopunskih
@@ -150,8 +148,11 @@ if tip_montaze == "Ground Support":
     rear_brace_kom = ukupno_backframe
     ukupni_balast = stvarna_s * balast_po_m
     
-    # Proračun gazišta: Dužina (stvarna_s) minus 1, samo ako je visina (v) > 2m
-    gazista_kom = int(stvarna_s - 1) if v > 2.0 else 0
+    # Proračun gazišta za ekran: math.ceil za srazmerno zaokruživanje na gore, pa minus 1 (samo ako je visina > 2m)
+    gazista_kom = int(math.ceil(stvarna_s) - 1) if v > 2.0 else 0
+    
+    # Proračun gazišta za tegove: na svakih 2m po jedno gazište
+    gazista_tegova_kom = math.ceil(stvarna_s / 2) if v > 2.0 else 0
 
     col_s1, col_s2, col_s3 = st.columns(3)
     with col_s1:
@@ -165,13 +166,14 @@ if tip_montaze == "Ground Support":
         st.write(f"- Teleskop: **{teleskop_kom}** kom")
         st.write(f"- Snajper: **{rear_brace_kom}** kom")
         if gazista_kom > 0:
-            st.write(f"- Gazišta: **{gazista_kom}** kom")
+            st.write(f"- Gazišta (ekran): **{gazista_kom}** kom")
     with col_s3:
         st.write(f"**Balast (Tegovi)**")
         st.error(f"**Ukupno: {ukupni_balast:.1f} kg**")
         st.info(f"Po stopi: **{ukupni_balast/broj_stubova:.1f} kg**")
+        if gazista_tegova_kom > 0:
+            st.write(f"- Gazišta (tegovi): **{gazista_tegova_kom}** kom")
 
-# DODATA STAVKA ZA VISINU KONSTRUKCIJE
     if v > nivoi_u_vis:
         st.warning(f"⚠️ Ekran je viši od konstrukcije za {round(v - nivoi_u_vis, 2)}m. Gornji deo panela nema Backframe potporu.")
 
@@ -200,4 +202,4 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-st.caption("v37 - by Dejan Popovic")
+st.caption("v38 - by Dejan Popovic")
