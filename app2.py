@@ -128,6 +128,79 @@ with c3:
 
 st.divider()
 
+# --- USLOVNI PRIKAZ SPECIFIKACIJE ---
+if tip_montaze == "Ground Support":
+    st.subheader("Specifikacija Ground Support elemenata")
+    v = stvarna_v
+    if v <= 1.0: balast_po_m = 0.0
+    elif v <= 2.0: balast_po_m = 30.0
+    elif v <= 3.0: balast_po_m = 70.0
+    elif v <= 4.0: balast_po_m = 125.0
+    else: balast_po_m = 125.0 + ((v - 4.0) * 50.0)
+
+    grid_1m = int(stvarna_s // 1)
+    ostatak_sirine = stvarna_s % 1
+    grid_05m = 1 if ostatak_sirine > 0 else 0
+    broj_stubova = grid_1m + grid_05m
+
+    nivoi_u_vis = math.floor(v) if v >= 1.0 else 1 
+    ukupno_backframe = broj_stubova * nivoi_u_vis
+    teleskop_kom = (broj_stubova - 1) * nivoi_u_vis
+    rear_brace_kom = ukupno_backframe
+    ukupni_balast = stvarna_s * balast_po_m
+    
+    gazista_kom = int(math.ceil(stvarna_s) - 1) if v > 2.0 else 0
+    gazista_tegova_kom = math.ceil(stvarna_s / 2) if v > 2.0 else 0
+
+    col_s1, col_s2, col_s3 = st.columns(3)
+    with col_s1:
+        st.write("**Baza i stubovi**")
+        st.write(f"- Grid (1m): **{grid_1m}** kom")
+        if grid_05m > 0: st.write(f"- Grid (0.5m): **1** kom")
+        st.write(f"- Ground Support: **{broj_stubova}** kom")
+        st.write(f"- Backframe (1m): **{ukupno_backframe}** kom")
+    with col_s2:
+        st.write("**Povezivanje**")
+        st.write(f"- Teleskop: **{teleskop_kom}** kom")
+        st.write(f"- Snajper: **{rear_brace_kom}** kom")
+        if gazista_kom > 0:
+            st.write(f"- Gazišta (ekran): **{gazista_kom}** kom")
+        if gazista_tegova_kom > 0:
+            st.write(f"- Gazišta (tegovi): **{gazista_tegova_kom}** kom")
+    with col_s3:
+        st.write("**Balast (Tegovi)**")
+        st.error(f"**Ukupno: {ukupni_balast:.1f} kg**")
+        st.info(f"Po stopi: **{ukupni_balast/broj_stubova:.1f} kg**")
+
+    if v > nivoi_u_vis:
+        st.warning(f"⚠️ Ekran je viši od konstrukcije za {round(v - nivoi_u_vis, 2)}m. Gornji deo panela nema Backframe potporu.")
+
+else:
+    st.subheader("Specifikacija Hanging elemenata")
+    grid_1m = int(stvarna_s // 1)
+    grid_05m = 1 if (stvarna_s % 1) > 0 else 0
+    shackles = (grid_1m + grid_05m) * 2
+    plocice = math.ceil(kvadratura)
+    srafovi = plocice * 4
+
+    col_h1, col_h2, col_h3 = st.columns(3)
+    with col_h1:
+        st.write("**Grid elementi**")
+        st.write(f"- Grid (1m): **{grid_1m}** kom")
+        if grid_05m > 0: st.write(f"- Grid (0.5m): **1** kom")
+    with col_h2:
+        st.write("**Rigging oprema**")
+        st.write(f"- Gurtna: **{shackles}** kom")
+        st.write(f"- Škopac: **{shackles}** kom")
+        st.write(f"- Stezna kopča: **{shackles}** kom")
+        st.write(f"- Okac: **{shackles}** kom")
+    with col_h3:
+        st.write("**Dodatni materijal**")
+        st.write(f"- Pločice: **{plocice}** kom")
+        st.write(f"- Šrafovi: **{srafovi}** kom")
+
+st.divider()
+
 # --- PALETA BOJA ZA LINIJE ---
 boje_linija = [
     "#0083b8", # Plava
@@ -174,14 +247,11 @@ panel_indeksi_mapa = {}
 
 p_brojac = 0
 if "Vertikalno" in smer_povezivanja:
-    # Kolona po kolonu (od dole ka vrhu)
     for col in range(br_sirina):
         for row in range(uk_redova - 1, -1, -1):
             p_brojac += 1
             panel_indeksi_mapa[(row, col)] = p_brojac
 else:
-    # Zmijoliki (Snake) redosled po redovima: 
-    # Neparni redovi (0, 2...) idu s leva na desno, parni (1, 3...) idu s desna na levo
     for row in range(uk_redova):
         cols_iter = range(br_sirina) if row % 2 == 0 else range(br_sirina - 1, -1, -1)
         for col in cols_iter:
@@ -259,80 +329,7 @@ grid_data = f"""
 st.components.v1.html(grid_data, height=110 + ((br_visina_glavni * main_h) + (dop_h if half_meter else 0)))
 
 st.divider()
-
-# --- USLOVNI PRIKAZ SPECIFIKACIJE ---
-if tip_montaze == "Ground Support":
-    st.subheader("Specifikacija Ground Support elemenata")
-    v = stvarna_v
-    if v <= 1.0: balast_po_m = 0.0
-    elif v <= 2.0: balast_po_m = 30.0
-    elif v <= 3.0: balast_po_m = 70.0
-    elif v <= 4.0: balast_po_m = 125.0
-    else: balast_po_m = 125.0 + ((v - 4.0) * 50.0)
-
-    grid_1m = int(stvarna_s // 1)
-    ostatak_sirine = stvarna_s % 1
-    grid_05m = 1 if ostatak_sirine > 0 else 0
-    broj_stubova = grid_1m + grid_05m
-
-    nivoi_u_vis = math.floor(v) if v >= 1.0 else 1 
-    ukupno_backframe = broj_stubova * nivoi_u_vis
-    teleskop_kom = (broj_stubova - 1) * nivoi_u_vis
-    rear_brace_kom = ukupno_backframe
-    ukupni_balast = stvarna_s * balast_po_m
-    
-    gazista_kom = int(math.ceil(stvarna_s) - 1) if v > 2.0 else 0
-    gazista_tegova_kom = math.ceil(stvarna_s / 2) if v > 2.0 else 0
-
-    col_s1, col_s2, col_s3 = st.columns(3)
-    with col_s1:
-        st.write("**Baza i stubovi**")
-        st.write(f"- Grid (1m): **{grid_1m}** kom")
-        if grid_05m > 0: st.write(f"- Grid (0.5m): **1** kom")
-        st.write(f"- Ground Support: **{broj_stubova}** kom")
-        st.write(f"- Backframe (1m): **{ukupno_backframe}** kom")
-    with col_s2:
-        st.write("**Povezivanje**")
-        st.write(f"- Teleskop: **{teleskop_kom}** kom")
-        st.write(f"- Snajper: **{rear_brace_kom}** kom")
-        if gazista_kom > 0:
-            st.write(f"- Gazišta (ekran): **{gazista_kom}** kom")
-        if gazista_tegova_kom > 0:
-            st.write(f"- Gazišta (tegovi): **{gazista_tegova_kom}** kom")
-    with col_s3:
-        st.write("**Balast (Tegovi)**")
-        st.error(f"**Ukupno: {ukupni_balast:.1f} kg**")
-        st.info(f"Po stopi: **{ukupni_balast/broj_stubova:.1f} kg**")
-
-    if v > nivoi_u_vis:
-        st.warning(f"⚠️ Ekran je viši od konstrukcije za {round(v - nivoi_u_vis, 2)}m. Gornji deo panela nema Backframe potporu.")
-
-else:
-    st.subheader("Specifikacija Hanging elemenata")
-    grid_1m = int(stvarna_s // 1)
-    grid_05m = 1 if (stvarna_s % 1) > 0 else 0
-    shackles = (grid_1m + grid_05m) * 2
-    plocice = math.ceil(kvadratura)
-    srafovi = plocice * 4
-
-    col_h1, col_h2, col_h3 = st.columns(3)
-    with col_h1:
-        st.write("**Grid elementi**")
-        st.write(f"- Grid (1m): **{grid_1m}** kom")
-        if grid_05m > 0: st.write(f"- Grid (0.5m): **1** kom")
-    with col_h2:
-        st.write("**Rigging oprema**")
-        st.write(f"- Gurtna: **{shackles}** kom")
-        st.write(f"- Škopac: **{shackles}** kom")
-        st.write(f"- Stezna kopča: **{shackles}** kom")
-        st.write(f"- Okac: **{shackles}** kom")
-    with col_h3:
-        st.write("**Dodatni materijal**")
-        st.write(f"- Pločice: **{plocice}** kom")
-        st.write(f"- Šrafovi: **{srafovi}** kom")
-
-st.divider()
-st.caption("v49 - by Dejan Popovic")
+st.caption("v50 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
