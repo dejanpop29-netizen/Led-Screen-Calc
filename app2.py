@@ -32,7 +32,7 @@ with st.sidebar:
      
     st.divider()
     tip_montaze = st.radio("Tip montaže:", ["Ground Support", "Hanging"])
-     nacin_kabliranja = st.radio("Logika rasporeda linija:", [
+    nacin_kabliranja = st.radio("Logika rasporeda linija:", [
         "Zmijoliko po redovima (Snake)", 
         "Celi redovi (Najbolje za teren)", 
         "Vertikalno po stubovima"
@@ -237,14 +237,12 @@ for row in range(br_visina_glavni):
 
 uk_redova = len(matrica_panela)
 
-# Mapiranje ID panela i linija prema odabranoj logici
 panel_indeksi_mapa = {}
 struja_linija_mapa = {}
 data_linija_mapa = {}
 
 p_brojac = 0
 if "Vertikalno" in nacin_kabliranja:
-    # Vertikalno po stubovima
     panela_po_s_liniji = max(1, math.ceil(ukupno_panela / max(1, glavnih_stru_izv)))
     panela_po_d_liniji = max(1, math.ceil(ukupno_panela / max(1, glavnih_data)))
     
@@ -256,15 +254,12 @@ if "Vertikalno" in nacin_kabliranja:
             data_linija_mapa[(row, col)] = min(glavnih_data, math.ceil(p_brojac / panela_po_d_liniji))
 
 elif "Celi redovi" in nacin_kabliranja:
-    # Svaki red (ili grupa redova) je zasebna čista linija
-    # Broj linija se prilagođava broju redova ili limitima
     redova_po_liniji = max(1, math.ceil(uk_redova / max(1, glavnih_data)))
     
     for row_idx, red in enumerate(matrica_panela):
         s_linija = min(glavnih_stru_izv, math.floor(row_idx / max(1, math.ceil(uk_redova / glavnih_stru_izv))) + 1)
         d_linija = min(glavnih_data, math.floor(row_idx / redova_po_liniji) + 1)
         
-        # Zmijoliko unutar reda da bude uredno
         cols_iter = range(br_sirina) if row_idx % 2 == 0 else range(br_sirina - 1, -1, -1)
         for col_idx in cols_iter:
             p_brojac += 1
@@ -272,7 +267,6 @@ elif "Celi redovi" in nacin_kabliranja:
             struja_linija_mapa[(row_idx, col_idx)] = s_linija
             data_linija_mapa[(row_idx, col_idx)] = d_linija
 else:
-    # Čist Zmijoliki (Snake) redosled sa kontinualnim prenosom
     panela_po_s_liniji = max(1, math.ceil(ukupno_panela / max(1, glavnih_stru_izv)))
     panela_po_d_liniji = max(1, math.ceil(ukupno_panela / max(1, glavnih_data)))
     
@@ -355,7 +349,7 @@ grid_data = f"""
 st.components.v1.html(grid_data, height=110 + ((br_visina_glavni * main_h) + (dop_h if half_meter else 0)))
 
 st.divider()
-st.caption("v51 - by Dejan Popovic")
+st.caption("v51.1 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
