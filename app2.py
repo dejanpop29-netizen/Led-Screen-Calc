@@ -223,10 +223,6 @@ panela_po_strujnoj_liniji = math.ceil(ukupno_panela / broj_strujnih_linija)
 broj_data_linija = max(1, glavnih_data)
 panela_po_data_liniji = math.ceil(ukupno_panela / broj_data_linija)
 
-base_w = 60
-main_h = int(base_w * (p['visina'] / p['sirina']))
-dop_h = int(base_w * (p_dopuna['visina'] / p_dopuna['sirina'])) if half_meter else 30
-
 # Kreiranje matrice panela radi lakšeg indeksiranja (red x kolona)
 matrica_panela = []
 
@@ -258,39 +254,60 @@ else:
             p_brojac += 1
             panel_indeksi_mapa[(row, col)] = p_brojac
 
+# --- SKALABILNA FUNKCIJA ZA PRIKAZ (RESPONZIVNO PROCENTUALNO) ---
+def generisi_skaliranu_smeu(matrica, mapa_linija, ukupno_linija, panela_po_liniji, naziv_tipa, hercaza_val=None):
+    html_out = f"""
+    <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; width: 100%; box-sizing: border-box;">
+    """
+    
+    for row_idx, red in enumerate(matrica):
+        html_out += '<div style="display: flex; gap: 2px; justify-content: center; margin-bottom: 2px; width: 100%;">'
+        for col_idx, panel in enumerate(red):
+            p_idx = panel_indeksi_mapa[(row_idx, col_idx)]
+            line_num = mapa_linija[(row_idx, col_idx)]
+            boja = get_boja(line_num)
+            
+            h_visina = "35px" if panel["tip"] == "dopuna" else "55px"
+            tekst_vrsta = "0.5m" if panel["tip"] == "dopuna" else f"P{p_idx}"
+            
+            # Fleksibilna procentualna širina da uvek stane u ekran bez skrola
+            sirina_procenat = f"calc({100 / br_sirina}% - 2px)"
+            
+            html_out += f'''
+            <div style="width: {sirina_procenat}; height: {h_visina}; background-color: {boja}; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; border-radius: 2px;" title="Panel {p_idx} | {naziv_tipa} {line_num}">
+                <span style="font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{tekst_vrsta}</span>
+                <span style="font-size: 7px; background: rgba(0,0,0,0.4); padding: 1px 2px; border-radius: 2px; margin-top: 1px;">{naziv_tipa[0]}{line_num}</span>
+            </div>'''
+        html_out += 'div>'
+        
+    dodatni_info = f"(@{hercaza_val}Hz)" if hercaza_val else ""
+    html_out += f"""
+        <p style="font-size: 11px; color: #a0a0a0; margin-top: 10px; text-align: center; font-family: sans-serif;">
+            {naziv_tipa} linija: <b>{ukupno_linija}</b> {dodatni_info} (~{panela_po_liniji} panela po liniji)
+        </p>
+    </div>
+    """
+    return html_out
+
+# Mapiranje linija za struju i data
+struja_linija_mapa = {}
+data_linija_mapa = {}
+
+for row_idx, red in enumerate(matrica_panela):
+    for col_idx, panel in enumerate(red):
+        p_idx = panel_indeksi_mapa[(row_idx, col_idx)]
+        struja_linija_mapa[(row_idx, col_idx)] = min(broj_strujnih_linija, math.ceil(p_idx / panela_po_strujnoj_liniji))
+        data_linija_mapa[(row_idx, col_idx)] = min(broj_data_linija, math.ceil(p_idx / panela_po_data_liniji))
+
+visina_ifrejma = 110 + (uk_redova * 60)
+
 # ==========================================
 # 1. STRUJNE LINIJE (POWERCON)
 # ==========================================
 st.subheader("Predlog strujnih linija (Powercon)")
 st.markdown(f"Smer: **{smer_povezivanja}** | Ukupno **{broj_strujnih_linija}** strujnih izvoda.")
-
-struja_html = ""
-for row_idx, red in enumerate(matrica_panela):
-    struja_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
-    for col_idx, panel in enumerate(red):
-        p_idx = panel_indeksi_mapa[(row_idx, col_idx)]
-        s_line = min(broj_strujnih_linija, math.ceil(p_idx / panela_po_strujnoj_liniji))
-        boja = get_boja(s_line)
-        
-        h_visina = dop_h if panel["tip"] == "dopuna" else main_h
-        tekst_vrsta = "0.5m" if panel["tip"] == "dopuna" else f"P{p_idx}"
-        
-        struja_html += f'''
-        <div style="width: {base_w}px; height: {h_visina}px; background-color: {boja}; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: white; font-weight: bold; border-radius: 3px;" title="Panel {p_idx} | Struja S{s_line}">
-            <span>{tekst_vrsta}</span>
-            <span style="font-size: 7px; background: rgba(0,0,0,0.3); padding: 1px 3px; border-radius: 2px;">S{s_line}</span>
-        </div>'''
-    struja_html += '</div>'
-
-grid_struja = f"""
-<div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto; text-align: center;">
-    {struja_html}
-    <p style="font-size: 11px; color: #a0a0a0; margin-top: 10px; font-family: sans-serif;">
-        ⚡ Strujnih linija: <b>{broj_strujnih_linija}</b> (~{panela_po_strujnoj_liniji} panela po liniji)
-    </p>
-</div>
-"""
-st.components.v1.html(grid_struja, height=110 + ((br_visina_glavni * main_h) + (dop_h if half_meter else 0)))
+grid_s_html = generisi_skaliranu_smeu(matrica_panela, struja_linija_mapa, broj_strujnih_linija, panela_po_strujnoj_liniji, "Struja")
+st.components.v1.html(grid_s_html, height=visina_ifrejma)
 
 st.divider()
 
@@ -299,37 +316,11 @@ st.divider()
 # ==========================================
 st.subheader("Predlog signalnih linija (Ethercon)")
 st.markdown(f"Smer: **{smer_povezivanja}** | Ukupno **{broj_data_linija}** data linija (@{hercaza}Hz).")
-
-data_html = ""
-for row_idx, red in enumerate(matrica_panela):
-    data_html += '<div style="display: flex; gap: 4px; justify-content: center; margin-bottom: 4px;">'
-    for col_idx, panel in enumerate(red):
-        p_idx = panel_indeksi_mapa[(row_idx, col_idx)]
-        d_line = min(broj_data_linija, math.ceil(p_idx / panela_po_data_liniji))
-        boja = get_boja(d_line)
-        
-        h_visina = dop_h if panel["tip"] == "dopuna" else main_h
-        tekst_vrsta = "0.5m" if panel["tip"] == "dopuna" else f"P{p_idx}"
-        
-        data_html += f'''
-        <div style="width: {base_w}px; height: {h_visina}px; background-color: {boja}; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: white; font-weight: bold; border-radius: 3px;" title="Panel {p_idx} | Data D{d_line}">
-            <span>{tekst_vrsta}</span>
-            <span style="font-size: 7px; background: rgba(0,0,0,0.3); padding: 1px 3px; border-radius: 2px;">D{d_line}</span>
-        </div>'''
-    data_html += '</div>'
-
-grid_data = f"""
-<div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; overflow-x: auto; text-align: center;">
-    {data_html}
-    <p style="font-size: 11px; color: #a0a0a0; margin-top: 10px; font-family: sans-serif;">
-        🌐 Data linija: <b>{broj_data_linija}</b> (~{panela_po_data_liniji} panela po liniji)
-    </p>
-</div>
-"""
-st.components.v1.html(grid_data, height=110 + ((br_visina_glavni * main_h) + (dop_h if half_meter else 0)))
+grid_d_html = generisi_skaliranu_smeu(matrica_panela, data_linija_mapa, broj_data_linija, panela_po_data_liniji, "Data", hercaza)
+st.components.v1.html(grid_d_html, height=visina_ifrejma)
 
 st.divider()
-st.caption("v50 - by Dejan Popovic")
+st.caption("v52 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
