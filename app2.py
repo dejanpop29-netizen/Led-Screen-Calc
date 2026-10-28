@@ -223,7 +223,6 @@ panela_po_strujnoj_liniji = math.ceil(ukupno_panela / broj_strujnih_linija)
 broj_data_linija = max(1, glavnih_data)
 panela_po_data_liniji = math.ceil(ukupno_panela / broj_data_linija)
 
-# Kreiranje matrice panela radi lakšeg indeksiranja (red x kolona)
 matrica_panela = []
 
 if half_meter:
@@ -254,28 +253,50 @@ else:
             p_brojac += 1
             panel_indeksi_mapa[(row, col)] = p_brojac
 
-# --- SKROLABILNA FUNKCIJA SA FIKSNIM PANELIMA I KLIZAČEM ---
-def generisi_skrolabilnu_smeu(matrica, mapa_linija, ukupno_linija, panela_po_liniji, naziv_tipa, hercaza_val=None):
-    # Minimalna širina unutrašnjeg kontejnera da se pojavi horizontalni klizač kad zatreba
-    min_sirina_px = br_sirina * 64 
+# --- PROPORCIONALNA FIZIČKA FUNKCIJA (KLIZAČ TEK PREKO 15 METARA) ---
+def generisi_proporcionalnu_smeu(matrica, mapa_linija, ukupno_linija, panela_po_liniji, naziv_tipa, hercaza_val=None):
+    veliki_ekran = stvarna_s > 15.0  # Provera da li je širina veća od 15m
     
+    # Proračun tačnih visina na osnovu proporcije iz baze (sirina x visina)
+    odnos_glavni = p['visina'] / p['sirina']
+    odnos_dopuna = (p_dopuna['visina'] / p_dopuna['sirina']) if half_meter else 0.5
+    
+    if veliki_ekran:
+        # Fiksne dimenzije za ekrane šire od 15m (aktivira klizač)
+        sirina_css = "60px"
+        visina_glavni_px = int(60 * odnos_glavni)
+        visina_dopuna_px = int(60 * odnos_dopuna)
+        min_sirina_px = br_sirina * 64
+        skrol_stil = "overflow-x: auto;"
+        poruka_klizac = " — <i>Aktiviran horizontalni klizač (širina > 15m)</i>"
+    else:
+        # Automatsko procentualno uklapanje za ekrane do 15m (bez klizača)
+        sirina_css = f"calc({100 / br_sirina}% - 2px)"
+        # Dinamička visina zavisno od broja kolona radi tačnih proporcija
+        bazna_visina = max(30, min(80, int(600 / br_sirina)))
+        visina_glavni_px = int(bazna_visina * odnos_glavni)
+        visina_dopuna_px = int(bazna_visina * odnos_dopuna)
+        min_sirina_px = 0
+        skrol_stil = "overflow-x: hidden;"
+        poruka_klizac = ""
+
     html_out = f"""
-    <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; width: 100%; overflow-x: auto; box-sizing: border-box;">
+    <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; width: 100%; {skrol_stil} box-sizing: border-box;">
         <div style="min-width: {min_sirina_px}px;">
     """
     
     for row_idx, red in enumerate(matrica):
-        html_out += '<div style="display: flex; gap: 4px; justify-content: flex-start; margin-bottom: 4px; width: 100%;">'
+        html_out += '<div style="display: flex; gap: 2px; justify-content: center; margin-bottom: 2px; width: 100%;">'
         for col_idx, panel in enumerate(red):
             p_idx = panel_indeksi_mapa[(row_idx, col_idx)]
             line_num = mapa_linija[(row_idx, col_idx)]
             boja = get_boja(line_num)
             
-            h_visina = "35px" if panel["tip"] == "dopuna" else "55px"
+            h_visina = f"{visina_dopuna_px}px" if panel["tip"] == "dopuna" else f"{visina_glavni_px}px"
             tekst_vrsta = "0.5m" if panel["tip"] == "dopuna" else f"P{p_idx}"
             
             html_out += f'''
-            <div style="width: 60px; min-width: 60px; height: {h_visina}; background-color: {boja}; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; border-radius: 2px;" title="Panel {p_idx} | {naziv_tipa} {line_num}">
+            <div style="width: {sirina_css}; min-width: {sirina_css if veliki_ekran else '0'}; height: {h_visina}; background-color: {boja}; border: 1px solid #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; border-radius: 2px;" title="Panel {p_idx} | {naziv_tipa} {line_num}">
                 <span style="font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{tekst_vrsta}</span>
                 <span style="font-size: 7px; background: rgba(0,0,0,0.4); padding: 1px 2px; border-radius: 2px; margin-top: 1px;">{naziv_tipa[0]}{line_num}</span>
             </div>'''
@@ -285,7 +306,7 @@ def generisi_skrolabilnu_smeu(matrica, mapa_linija, ukupno_linija, panela_po_lin
     html_out += f"""
         </div>
         <p style="font-size: 11px; color: #a0a0a0; margin-top: 10px; text-align: center; font-family: sans-serif;">
-            {naziv_tipa} linija: <b>{ukupno_linija}</b> {dodatni_info} (~{panela_po_liniji} panela po liniji) — <i>Koristi horizontalni klizač ispod crteža za pregled širine</i>
+            {naziv_tipa} linija: <b>{ukupno_linija}</b> {dodatni_info} (~{panela_po_liniji} panela po liniji){poruka_klizac}
         </p>
     </div>
     """
@@ -301,14 +322,17 @@ for row_idx, red in enumerate(matrica_panela):
         struja_linija_mapa[(row_idx, col_idx)] = min(broj_strujnih_linija, math.ceil(p_idx / panela_po_strujnoj_liniji))
         data_linija_mapa[(row_idx, col_idx)] = min(broj_data_linija, math.ceil(p_idx / panela_po_data_liniji))
 
-visina_ifrejma = 125 + (uk_redova * 62)
+# Dinamička visina okvira prema proporciji
+odnos_v = p['visina'] / p['sirina']
+visina_reda_px = int(60 * odnos_v) if stvarna_s > 15.0 else max(35, int(600 / br_sirina * odnos_v))
+visina_ifrejma = 120 + (uk_redova * (visina_reda_px + 4))
 
 # ==========================================
 # 1. STRUJNE LINIJE (POWERCON)
 # ==========================================
 st.subheader("Predlog strujnih linija (Powercon)")
 st.markdown(f"Smer: **{smer_povezivanja}** | Ukupno **{broj_strujnih_linija}** strujnih izvoda.")
-grid_s_html = generisi_skrolabilnu_smeu(matrica_panela, struja_linija_mapa, broj_strujnih_linija, panela_po_strujnoj_liniji, "Struja")
+grid_s_html = generisi_proporcionalnu_smeu(matrica_panela, struja_linija_mapa, broj_strujnih_linija, panela_po_strujnoj_liniji, "Struja")
 st.components.v1.html(grid_s_html, height=visina_ifrejma)
 
 st.divider()
@@ -318,11 +342,11 @@ st.divider()
 # ==========================================
 st.subheader("Predlog signalnih linija (Ethercon)")
 st.markdown(f"Smer: **{smer_povezivanja}** | Ukupno **{broj_data_linija}** data linija (@{hercaza}Hz).")
-grid_d_html = generisi_skrolabilnu_smeu(matrica_panela, data_linija_mapa, broj_data_linija, panela_po_data_liniji, "Data", hercaza)
+grid_d_html = generisi_proporcionalnu_smeu(matrica_panela, data_linija_mapa, broj_data_linija, panela_po_data_liniji, "Data", hercaza)
 st.components.v1.html(grid_d_html, height=visina_ifrejma)
 
 st.divider()
-st.caption("v53 - by Dejan Popovic")
+st.caption("v54 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
