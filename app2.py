@@ -32,7 +32,6 @@ with st.sidebar:
      
     st.divider()
     tip_montaze = st.radio("Tip montaže:", ["Ground Support", "Hanging"])
-    smer_povezivanja = st.radio("Smer linija kablova:", ["Zmijoliko (Snake po redovima)", "Vertikalno (Po kolonama)"])
     
     st.info("ℹ️ Režim rada: Indoor. Kontra-teg se računa kao 70% mase ekrana radi stabilnosti konstrukcije.")
 
@@ -109,12 +108,12 @@ c1, c2, c3 = st.columns(3)
 with c1:
     st.subheader("Data (Ethercon)")
     st.write(f"Limit (@{hercaza}Hz): **{pixel_limit:,} px**")
-    st.info(f"Preporučeno portova: **{glavnih_data}**")
+    st.info(f"Preporučeno linija: **{glavnih_data}**")
 
 with c2:
     st.subheader("Struja (Powercon)")
     st.write("Limit: **3000 W** po kablu")
-    st.warning(f"Preporučeno izvoda: **{glavnih_stru_izv}**")
+    st.warning(f"Preporučeno linija: **{glavnih_stru_izv}**")
 
 with c3:
     if tip_montaze == "Ground Support":
@@ -200,184 +199,7 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-
-# --- PALETA BOJA ZA PORTOVE ---
-boje_portova = [
-    "#e53935", # Crvena (Port 1)
-    "#43a047", # Zelena (Port 2)
-    "#00acc1", # Tirkizna (Port 3)
-    "#8e24aa", # Ljubičasta (Port 4)
-    "#fb8c00", # Narandžasta (Port 5)
-    "#1e88e5", # Plava (Port 6)
-    "#d81b60", # Roza (Port 7)
-    "#6d4c41"  # Smeđa (Port 8)
-]
-
-def get_boja_porta(p_idx):
-    return boje_portova[(p_idx - 1) % len(boje_portova)]
-
-# --- MATRICA PANELA I MAPIRANJE PORTOVA ---
-matrica_panela = []
-
-if half_meter:
-    red_dopuna = []
-    for col in range(br_sirina):
-        red_dopuna.append({"tip": "dopuna", "r": -1, "c": col})
-    matrica_panela.append(red_dopuna)
-
-for row in range(br_visina_glavni):
-    red_glavni = []
-    for col in range(br_sirina):
-        red_glavni.append({"tip": "glavni", "r": row, "c": col})
-    matrica_panela.append(red_glavni)
-
-uk_redova = len(matrica_panela)
-panel_indeksi_mapa = {} 
-
-p_brojac = 0
-if "Vertikalno" in smer_povezivanja:
-    for col in range(br_sirina):
-        for row in range(uk_redova - 1, -1, -1):
-            p_brojac += 1
-            panel_indeksi_mapa[(row, col)] = p_brojac
-else:
-    for row in range(uk_redova):
-        cols_iter = range(br_sirina) if row % 2 == 0 else range(br_sirina - 1, -1, -1)
-        for col_idx in cols_iter:
-            p_brojac += 1
-            panel_indeksi_mapa[(row, col_idx)] = p_brojac
-
-# Raspodela panela po portovima na osnovu pixel limita
-port_mapa_p = {}
-port_stat = {} # {port_id: {"cab": count, "px": pixels}}
-
-trenutni_port = 1
-trenutni_px_porta = 0
-panel_pix_jedn = (p['res_x'] * p['res_y'])
-
-for r_idx, red in enumerate(matrica_panela):
-    for c_idx, panel in enumerate(red):
-        p_idx = panel_indeksi_mapa[(r_idx, c_idx)]
-        p_pix = (p_dopuna['res_x'] * p_dopuna['res_y']) if panel["tip"] == "dopuna" else panel_pix_jedn
-        
-        if trenutni_px_porta + p_pix > pixel_limit and trenutni_port < glavnih_data:
-            trenutni_port += 1
-            trenutni_px_porta = 0
-            
-        port_mapa_p[(r_idx, c_idx)] = trenutni_port
-        trenutni_px_porta += p_pix
-        
-        if trenutni_port not in port_stat:
-            port_stat[trenutni_port] = {"cab": 0, "px": 0}
-        port_stat[trenutni_port]["cab"] += 1
-        port_stat[trenutni_port]["px"] += p_pix
-
-# Pronalazimo početni panel (IN) za svaki port da dobije kružnu oznaka porta (1, 2, 3...)
-port_min_panel = {}
-for r_idx, red in enumerate(matrica_panela):
-    for c_idx, panel in enumerate(red):
-        p_id = panel_indeksi_mapa[(r_idx, c_idx)]
-        port_id = port_mapa_p[(r_idx, c_idx)]
-        if port_id not in port_min_panel or p_id < port_min_panel[port_id]:
-            port_min_panel[port_id] = p_id
-
-# --- VIZUELNI PRIKAZ PORTOVA U STILU KARTICE SA SLIKE ---
-def generisi_vizuelne_portove():
-    veliki_ekran = stvarna_s > 15.0
-    odnos_glavni = p['visina'] / p['sirina']
-    odnos_dopuna = (p_dopuna['visina'] / p_dopuna['sirina']) if half_meter else 0.5
-    
-    if veliki_ekran:
-        sirina_css = "60px"
-        visina_glavni_px = int(60 * odnos_glavni)
-        visina_dopuna_px = int(60 * odnos_dopuna)
-        min_sirina_px = br_sirina * 64
-        skrol_stil = "overflow-x: auto;"
-    else:
-        sirina_css = f"calc({100 / br_sirina}% - 2px)"
-        bazna_sirina_px = max(25, min(90, int(800 / br_sirina)))
-        visina_glavni_px = int(bazna_sirina_px * odnos_glavni)
-        visina_dopuna_px = int(bazna_sirina_px * odnos_dopuna)
-        min_sirina_px = 0
-        skrol_stil = "overflow-x: hidden;"
-
-    # Generisanje legende portova gore
-    legend_html = '<div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; background: #161b22; padding: 12px; border-radius: 6px; border: 1px solid #303545;">'
-    for pid, data in port_stat.items():
-        boja = boje_portova[(pid - 1) % len(boje_portova)]
-        procenat = int((data["px"] / pixel_limit) * 100)
-        legend_html += f'''
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="width: 14px; height: 14px; background-color: {boja}; border-radius: 3px;"></div>
-            <span style="font-size: 12px; color: #ffffff; font-family: sans-serif;"><b>Port {pid}</b> ({data["cab"]} cab., {data["px"]:,}px, {procenat}%)</span>
-        </div>'''
-    legend_html += '</div>'
-
-    html_out = f"""
-    <div style="background-color: #0e1117; padding: 15px; border-radius: 8px; border: 1px solid #303545; width: 100%; box-sizing: border-box;">
-        {legend_html}
-        <div style="{skrol_stil} width: 100%;">
-            <div style="min-width: {min_sirina_px}px; border: 2px solid #ffffff; padding: 4px; background: #0b0e14;">
-    """
-    
-    for row_idx, red in enumerate(matrica_panela):
-        html_out += '<div style="display: flex; gap: 2px; justify-content: center; margin-bottom: 2px; width: 100%;">'
-        for col_idx, panel in enumerate(red):
-            p_idx = panel_indeksi_mapa[(row_idx, col_idx)]
-            port_id = port_mapa_p[(row_idx, col_idx)]
-            boja = get_boja_porta(port_id)
-            
-            h_visina = f"{visina_dopuna_px}px" if panel["tip"] == "dopuna" else f"{visina_glavni_px}px"
-            tekst_vrsta = "0.5m" if panel["tip"] == "dopuna" else f"P{p_idx}"
-            
-            # Kružna oznaka početka porta sa brojem u stilu sa slike (npr. krug sa brojem 1, 2...)
-            kruzni_pocetak = ""
-            if p_idx == port_min_panel.get(port_id):
-                kruzni_pocetak = f'''
-                <div style="width: 18px; height: 18px; border: 2px solid #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; background: rgba(0,0,0,0.6); color: #fff; margin-bottom: 1px; font-weight: bold;">
-                    {port_id}
-                </div>'''
-            
-            # Strelica smera
-            strelica = "➔"
-            if "Vertikalno" in smer_povezivanja:
-                strelica = "⬆"
-            else:
-                if row_idx % 2 != 0:
-                    strelica = "⬅"
-                else:
-                    strelica = "➔"
-
-            html_out += f'''
-            <div style="width: {sirina_css}; min-width: {sirina_css if veliki_ekran else '0'}; height: {h_visina}; background-color: {boja}; border: 1px solid rgba(255,255,255,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: white; font-weight: bold; border-radius: 2px;" title="Panel {p_idx} | Port {port_id}">
-                {kruzni_pocetak}
-                <span style="font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{tekst_vrsta} {strelica}</span>
-                <span style="font-size: 7px; background: rgba(0,0,0,0.4); padding: 1px 2px; border-radius: 2px; margin-top: 1px;">{port_id}.{p_idx}</span>
-            </div>'''
-        html_out += '</div>'
-        
-    html_out += f"""
-            </div>
-        </div>
-        <p style="font-size: 11px; color: #a0a0a0; margin-top: 10px; text-align: center; font-family: sans-serif;">
-            🌐 Ukupno aktivnih portova: <b>{len(port_stat)}</b> (@{hercaza}Hz) — <i>Prikaz sa oznakama portova i smerom kabliranja</i>
-        </p>
-    </div>
-    """
-    return html_out
-
-# Dinamička visina okvira
-odnos_v = p['visina'] / p['sirina']
-visina_reda_px = int(55 * odnos_v) if stvarna_s > 15.0 else max(30, int(800 / br_sirina * odnos_v))
-visina_ifrejma = 160 + (uk_redova * (visina_reda_px + 6))
-
-st.subheader("🌐 Vizuelna mapa portova i signala (Sender Port Map)")
-st.markdown(f"Režim povezivanja: **{smer_povezivanja}**")
-grid_portova_html = generisi_vizuelne_portove()
-st.components.v1.html(grid_portova_html, height=visina_ifrejma)
-
-st.divider()
-st.caption("v58 - by Dejan Popovic")
+st.caption("v57 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
