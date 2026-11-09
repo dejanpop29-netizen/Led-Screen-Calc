@@ -105,7 +105,7 @@ teg = masa_ekrana * 0.70
 
 # --- PRIKAZ NA EKRANU ---
 m1, m2, m3 = st.columns(3)
-m1.metric("Panela", f"{ukupno_panela} kom", f"Kejseva: {ukupno_kejseva}")
+m1.metric("Panela", f"{ukupno_panela} kom", f"Glavni: {broj_glavnih} | Dopuna: {broj_dopunskih} | Kejseva: {ukupno_kejseva}")
 m2.metric("Dimenzije", f"{stvarna_s}m x {stvarna_v}m", f"{kvadratura:.2f} m²")
 m3.metric("Rezolucija", f"{res_x}x{res_y} px", aspect_ratio)
 
