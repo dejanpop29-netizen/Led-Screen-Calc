@@ -182,7 +182,7 @@ if tip_montaze == "Ground Support":
     with col_s3:
         st.write("**Balast (Tegovi od 50kg)**")
         st.error(f"**Ukupno tegova (50kg): {broj_tegova_50kg} kom**")
-        st.info(f"Teoretski balast: **{ukupni_balast:.1f} kg**")
+        # { st.info(f"Teoretski balast: **{ukupni_balast:.1f} kg**") }
 
     if v > nivoi_u_vis:
         st.warning(f"⚠️ Ekran je viši od konstrukcije za {round(v - nivoi_u_vis, 2)}m. Gornji deo panela nema Backframe potporu.")
