@@ -180,7 +180,7 @@ if tip_montaze == "Ground Support":
         if gazista_tegova_kom > 0:
             st.write(f"- Gazišta (tegovi): **{gazista_tegova_kom}** kom")
     with col_s3:
-        st.write("**Balast (Tegovi od 50kg)**")
+        st.write("**Balast**")
         st.error(f"**Ukupno tegova (50kg): {broj_tegova_50kg} kom**")
         # { st.info(f"Teoretski balast: **{ukupni_balast:.1f} kg**") }
 
