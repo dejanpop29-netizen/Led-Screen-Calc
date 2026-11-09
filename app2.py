@@ -156,10 +156,7 @@ if tip_montaze == "Ground Support":
     ukupno_backframe = broj_stubova * nivoi_u_vis
     teleskop_kom = (broj_stubova - 1) * nivoi_u_vis
     rear_brace_kom = ukupno_backframe
-    
     ukupni_balast = stvarna_s * balast_po_m
-    # Proračun broja tegova od 50kg (zaokruženo na niže)
-    broj_tegova_50kg = math.floor(ukupni_balast / 50)
     
     gazista_kom = int(math.ceil(stvarna_s) - 1) if v > 2.0 else 0
     gazista_tegova_kom = math.ceil(stvarna_s / 2) if v > 2.0 else 0
@@ -180,9 +177,9 @@ if tip_montaze == "Ground Support":
         if gazista_tegova_kom > 0:
             st.write(f"- Gazišta (tegovi): **{gazista_tegova_kom}** kom")
     with col_s3:
-        st.write("**Balast (Tegovi od 50kg)**")
-        st.error(f"**Ukupno tegova (50kg): {broj_tegova_50kg} kom**")
-        st.info(f"Teoretski balast: **{ukupni_balast:.1f} kg**")
+        st.write("**Balast (Tegovi)**")
+        st.error(f"**Ukupno: {ukupni_balast:.1f} kg**")
+        st.info(f"Po stopi(Ground Support): **{ukupni_balast/broj_stubova:.1f} kg**")
 
     if v > nivoi_u_vis:
         st.warning(f"⚠️ Ekran je viši od konstrukcije za {round(v - nivoi_u_vis, 2)}m. Gornji deo panela nema Backframe potporu.")
@@ -212,7 +209,7 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-st.caption("v57.3 - by Dejan Popovic")
+st.caption("v57.2 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
