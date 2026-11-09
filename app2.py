@@ -129,7 +129,7 @@ with c3:
     if tip_montaze == "Ground Support":
         st.subheader("Težina & Tegovi")
         st.write("Lokacija: **Indoor**")
-        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**\n\nKontra-teg(70% od mase ekrana): **{teg:.1f} kg**")
+        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**\n\nKontra-teg: **{teg:.1f} kg (70% od mase ekrana)**")
     else:
         st.subheader("Težina & Rigging")
         st.write("Lokacija: **Hanging**")
