@@ -27,8 +27,7 @@ with st.sidebar:
     st.divider()
     sirina_m = st.number_input("Širina ekrana (m):", value=4.0, step=0.5)
     
-    # Provera da li je panel visine 1 metar (1000mm)
-     je_metarski_panel = (p['visina'] == 1000)
+    je_metarski_panel = (p['visina'] == 1000)
     
     if je_metarski_panel:
         visina_m = st.number_input("Visina ekrana (m):", value=3.0, step=1.0, format="%.0f")
