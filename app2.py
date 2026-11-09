@@ -43,7 +43,7 @@ with st.sidebar:
     st.divider()
     tip_montaze = st.radio("Tip montaže:", ["Ground Support", "Hanging"])
     
-    st.info("ℹ️ Režim rada: Indoor. Kontra-teg se računa kao 70% mase ekrana radi stabilnosti konstrukcije.")
+    # st.info("ℹ️ Režim rada: Indoor. Kontra-teg se računa kao 70% mase ekrana radi stabilnosti konstrukcije.")
 
 # --- PRORAČUNI ---
 if "P3.9" in izbor:
@@ -129,7 +129,7 @@ with c3:
     if tip_montaze == "Ground Support":
         st.subheader("Težina & Tegovi")
         st.write("Lokacija: **Indoor**")
-        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**\n\nKontra-teg: **{teg:.1f} kg**")
+        st.error(f"Težina ekrana: **{masa_ekrana:.1f} kg**\n\nKontra-teg(70% od mase ekrana): **{teg:.1f} kg**")
     else:
         st.subheader("Težina & Rigging")
         st.write("Lokacija: **Hanging**")
