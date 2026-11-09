@@ -26,7 +26,18 @@ with st.sidebar:
      
     st.divider()
     sirina_m = st.number_input("Širina ekrana (m):", value=4.0, step=0.5)
-    visina_m = st.number_input("Visina ekrana (m):", value=3.0, step=0.5)
+    
+    # Provera da li je panel visine 1 metar (1000mm)
+     je_metarski_panel = (p['visina'] == 1000)
+    
+    if je_metarski_panel:
+        visina_m = st.number_input("Visina ekrana (m):", value=3.0, step=1.0, format="%.0f")
+        if visina_m % 1 != 0:
+            visina_m = round(visina_m)
+            st.warning("⚠️ Za 1m panele visina mora biti ceo broj. Za dodavanje 0.5m koristite opciju ispod.")
+    else:
+        visina_m = st.number_input("Visina ekrana (m):", value=3.0, step=0.5)
+
     half_meter = st.checkbox("Dodaj 0.5m panel na vrh")
     hercaza = st.selectbox("Frekvencija (Hz):", [50, 60, 100, 120, 144], index=1)
      
@@ -95,7 +106,7 @@ teg = masa_ekrana * 0.70
 
 # --- PRIKAZ NA EKRANU ---
 m1, m2, m3 = st.columns(3)
-m1.metric("Panela", f"{ukupno_panela} kom", f"Glavni: {broj_glavnih} | Dopuna: {broj_dopunskih} | Kejseva: {ukupno_kejseva}")
+m1.metric("Panela", f"{ukupno_panela} kom", f"Kejseva: {ukupno_kejseva}")
 m2.metric("Dimenzije", f"{stvarna_s}m x {stvarna_v}m", f"{kvadratura:.2f} m²")
 m3.metric("Rezolucija", f"{res_x}x{res_y} px", aspect_ratio)
 
@@ -199,7 +210,7 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-st.caption("v57 - by Dejan Popovic")
+st.caption("v57.2 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
