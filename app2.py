@@ -38,8 +38,10 @@ with st.sidebar:
 # --- PRORAČUNI ---
 if "P3.9" in izbor:
     p_dopuna = baza_panela["P3.9 Crni 128x128px"]
+    naziv_dopune = "P3.9 Crni 128x128px (0.5m)"
 else:
     p_dopuna = baza_panela["P2.9 Plavi 168x168px"]
+    naziv_dopune = "P2.9 Plavi 168x168px (0.5m)"
     
 br_sirina = math.ceil((sirina_m * 1000) / p['sirina'])
 br_visina_glavni = math.ceil((visina_m * 1000) / p['visina'])
@@ -48,6 +50,7 @@ broj_glavnih = br_sirina * br_visina_glavni
 broj_dopunskih = br_sirina if half_meter else 0
 ukupno_panela = broj_glavnih + broj_dopunskih
 
+# Proračun kejseva sa detaljnim tipovima
 kejs_glavnih = math.ceil(broj_glavnih / p['po_kejsu'])
 kejs_dopunskih = math.ceil(broj_dopunskih / p_dopuna['po_kejsu']) if broj_dopunskih > 0 else 0
 ukupno_kejseva = kejs_glavnih + kejs_dopunskih
@@ -95,9 +98,28 @@ teg = masa_ekrana * 0.70
 
 # --- PRIKAZ NA EKRANU ---
 m1, m2, m3 = st.columns(3)
-m1.metric("Panela", f"{ukupno_panela} kom", f"Glavni: {broj_glavnih} | Dopuna: {broj_dopunskih} | Kejseva: {ukupno_kejseva}")
+m1.metric("Panela", f"{ukupno_panela} kom", f"Glavni: {broj_glavnih} | Dopuna: {broj_dopunskih}")
 m2.metric("Dimenzije", f"{stvarna_s}m x {stvarna_v}m", f"{kvadratura:.2f} m²")
 m3.metric("Rezolucija", f"{res_x}x{res_y} px", aspect_ratio)
+
+st.divider()
+
+# --- SEKCIJA ZA KEJSEVE (Koje i koliko) ---
+st.subheader("📦 Potrebni transportni kejsevi")
+k1, k2 = st.columns(2)
+with k1:
+    st.info(f"**Glavni paneli ({izbor})**\n\n"
+            f"- Broj panela: **{broj_glavnih} kom**\n"
+            f"- Kapacitet kejsa: **{p['po_kejsu']} kom/kejsu**\n"
+            f"- Potrebno kejseva: **{kejs_glavnih} kejs(a)**")
+with k2:
+    if broj_dopunskih > 0:
+        st.warning(f"**Dopunski paneli ({naziv_dopune})**\n\n"
+                   f"- Broj panela: **{broj_dopunskih} kom**\n"
+                   f"- Kapacitet kejsa: **{p_dopuna['po_kejsu']} kom/kejsu**\n"
+                   f"- Potrebno kejseva: **{kejs_dopunskih} kejs(a)**")
+    else:
+        st.success("**Dopunski paneli (0.5m):** Nisu uključeni u postavci.")
 
 st.divider()
 st.subheader(f"Potrošnja: {potrosnja_kw:.2f} kW")
@@ -199,7 +221,7 @@ else:
         st.write(f"- Šrafovi: **{srafovi}** kom")
 
 st.divider()
-st.caption("v57 - by Dejan Popovic")
+st.caption("v57.1 - by Dejan Popovic")
 
 # Učitavanje logo fajla
 try:
